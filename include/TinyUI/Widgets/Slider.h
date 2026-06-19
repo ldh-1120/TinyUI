@@ -5,6 +5,7 @@
 #include <TinyUI/Input/MouseButton.h>
 #include <TinyUI/Rendering/Renderer.h>
 #include <TinyUI/Theme/Theme.h>
+#include <TinyUI/Context/UIContext.h>
 
 #include <string_view>
 
@@ -13,7 +14,9 @@ namespace tinyui {
 		Color labelTextColor = Color::FromRGB(210, 214, 225);
 		Color valueTextColor = Color::FromRGB(150, 156, 170);
 
-		Color trackColor = Color::FromRGB(150, 156, 170);
+		Color trackColor = Color::FromRGB(42, 48, 62);
+		Color trackHoveredColor = Color::FromRGB(54, 60, 76);
+
 		Color fillColor = Color::FromRGB(120, 86, 255);
 		Color handleColor = Color::FromRGB(235, 237, 245);
 
@@ -52,6 +55,8 @@ namespace tinyui {
 		float value = 0.f;
 	};
 
-	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, const Theme& theme, SliderOptions options = { });
 	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { }, SliderStyle style = { });
+	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, const Theme& theme, SliderOptions options = { });
+	SliderResult Slider(UIContext& context, WidgetId id, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { });
+	SliderResult Slider(UIContext& context, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { });
 }

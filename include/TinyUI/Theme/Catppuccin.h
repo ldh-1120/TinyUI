@@ -410,10 +410,7 @@ namespace tinyui::Catppuccin {
 }
 
 namespace tinyui {
-    inline Theme MakeCatppuccinTheme(
-        const CatppuccinPalette& palette,
-        const wchar_t* name
-    ) {
+    inline Theme MakeCatppuccinTheme(const CatppuccinPalette& palette, const wchar_t* name) {
         Theme theme {};
         theme.name = name;
 
@@ -457,31 +454,19 @@ namespace tinyui {
     }
 
     inline Theme MakeCatppuccinLatteTheme() {
-        return MakeCatppuccinTheme(
-            Catppuccin::LattePalette,
-            L"Catppuccin Latte"
-        );
+        return MakeCatppuccinTheme(Catppuccin::LattePalette, L"Catppuccin Latte");
     }
 
     inline Theme MakeCatppuccinFrappeTheme() {
-        return MakeCatppuccinTheme(
-            Catppuccin::FrappePalette,
-            L"Catppuccin Frappe"
-        );
+        return MakeCatppuccinTheme(Catppuccin::FrappePalette, L"Catppuccin Frappe");
     }
 
     inline Theme MakeCatppuccinMacchiatoTheme() {
-        return MakeCatppuccinTheme(
-            Catppuccin::MacchiatoPalette,
-            L"Catppuccin Macchiato"
-        );
+        return MakeCatppuccinTheme(Catppuccin::MacchiatoPalette, L"Catppuccin Macchiato");
     }
 
     inline Theme MakeCatppuccinMochaTheme() {
-        return MakeCatppuccinTheme(
-            Catppuccin::MochaPalette,
-            L"Catppuccin Mocha"
-        );
+        return MakeCatppuccinTheme(Catppuccin::MochaPalette, L"Catppuccin Mocha");
     }
 
     inline Theme MakeDefaultTheme() {
@@ -493,26 +478,10 @@ namespace tinyui {
     inline ThemeRegistry MakeCatppuccinThemeRegistry() {
         ThemeRegistry registry {};
 
-        registry.RegisterTheme(
-            L"catppuccin.mocha",
-            MakeCatppuccinMochaTheme()
-        );
-
-        registry.RegisterTheme(
-            L"catppuccin.macchiato",
-            MakeCatppuccinMacchiatoTheme()
-        );
-
-        registry.RegisterTheme(
-            L"catppuccin.frappe",
-            MakeCatppuccinFrappeTheme()
-        );
-
-        registry.RegisterTheme(
-            L"catppuccin.latte",
-            MakeCatppuccinLatteTheme()
-        );
-
+        registry.RegisterTheme(L"catppuccin.mocha", MakeCatppuccinMochaTheme());
+        registry.RegisterTheme(L"catppuccin.macchiato", MakeCatppuccinMacchiatoTheme());
+        registry.RegisterTheme(L"catppuccin.frappe", MakeCatppuccinFrappeTheme());
+        registry.RegisterTheme(L"catppuccin.latte", MakeCatppuccinLatteTheme());
         registry.SetCurrentTheme(L"catppuccin.mocha");
 
         return registry;

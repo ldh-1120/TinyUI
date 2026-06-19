@@ -5,6 +5,7 @@
 #include <TinyUI/Input/MouseButton.h>
 #include <TinyUI/Rendering/Renderer.h>
 #include <TinyUI/Theme/Theme.h>
+#include <TinyUI/Context/UIContext.h>
 
 #include <string_view>
 
@@ -36,6 +37,8 @@ namespace tinyui {
 		MouseButton clickedButton = MouseButton::Left;
 	};
 
-	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, const Theme& theme, ButtonOptions options = { });
 	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, ButtonOptions options = { }, ButtonStyle style = { });
+	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, const Theme& theme, ButtonOptions options = { });
+	ButtonResult Button(UIContext& context, WidgetId id, Rect rect, std::wstring_view text, ButtonOptions options = { });
+	ButtonResult Button(UIContext& context, Rect rect, std::wstring_view text, ButtonOptions options = { });
 }

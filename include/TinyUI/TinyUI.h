@@ -8,6 +8,7 @@
 #include <TinyUI/Theme/Theme.h>
 #include <TinyUI/Theme/ThemeRegistry.h>
 #include <TinyUI/Theme/Catppuccin.h>
+#include <TinyUI/Context/UIContext.h>
 #include <TinyUI/Widgets/Button.h>
 #include <TinyUI/Widgets/Panel.h>
 #include <TinyUI/Widgets/Slider.h>

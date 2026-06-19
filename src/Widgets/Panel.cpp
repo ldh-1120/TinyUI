@@ -5,10 +5,6 @@ namespace tinyui {
 		return a > b ? a : b;
 	}
 
-	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, const Theme& theme) {
-		return Panel(renderer, input, rect, title, PanelStyle::FromTheme(theme));
-	}
-
 	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, PanelStyle style) {
 		PanelResult result { };
 		result.rect = rect;
@@ -28,6 +24,22 @@ namespace tinyui {
 
 		result.contentRect = { rect.x + style.padding, contentY, MaxFloat(0.f, rect.w - style.padding * 2.f), MaxFloat(0.f, rect.y + rect.h - contentY - style.padding) };
 		return result;
+	}
+
+	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, const Theme& theme) {
+		return Panel(renderer, input, rect, title, PanelStyle::FromTheme(theme));
+	}
+
+	PanelResult Panel(UIContext& context, WidgetId id, Rect rect, std::wstring_view title) {
+		PanelResult result = Panel(context.GetRenderer(), context.GetInput(), rect, title, context.GetTheme());
+		if (result.hovered)
+			context.SetHoveredId(id);
+
+		return result;
+	}
+
+	PanelResult Panel(UIContext& context, Rect rect, std::wstring_view title) {
+		return Panel(context, MakeWidgetId(title), rect, title);
 	}
 
 	PanelStyle PanelStyle::FromTheme(const Theme& theme) {

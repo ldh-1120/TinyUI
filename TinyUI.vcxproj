@@ -153,7 +153,9 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\TinyUI\Context\UIContext.h" />
     <ClInclude Include="include\TinyUI\Core\Types.h" />
+    <ClInclude Include="include\TinyUI\Core\WidgetId.h" />
     <ClInclude Include="include\TinyUI\Input\InputState.h" />
     <ClInclude Include="include\TinyUI\Input\MouseButton.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
@@ -167,6 +169,7 @@
     <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Context\UIContext.cpp" />
     <ClCompile Include="src\Input\InputState.cpp" />
     <ClCompile Include="src\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
