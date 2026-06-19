@@ -157,6 +157,10 @@
     <ClInclude Include="include\TinyUI\Input\InputState.h" />
     <ClInclude Include="include\TinyUI\Input\MouseButton.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
+    <ClInclude Include="include\TinyUI\Rendering\Renderer.h" />
+    <ClInclude Include="include\TinyUI\Theme\Catppuccin.h" />
+    <ClInclude Include="include\TinyUI\Theme\Theme.h" />
+    <ClInclude Include="include\TinyUI\Theme\ThemeRegistry.h" />
     <ClInclude Include="include\TinyUI\TinyUI.h" />
     <ClInclude Include="include\TinyUI\Widgets\Button.h" />
     <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
@@ -164,6 +168,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Input\InputState.cpp" />
+    <ClCompile Include="src\Rendering\Renderer.cpp" />
+    <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
     <ClCompile Include="src\TinyUI.cpp" />
     <ClCompile Include="src\Widgets\Button.cpp" />
     <ClCompile Include="src\Widgets\Panel.cpp" />

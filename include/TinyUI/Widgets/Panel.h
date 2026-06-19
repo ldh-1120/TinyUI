@@ -1,6 +1,9 @@
 #pragma once
 
-#include <TinyUI/TinyUI.h>
+#include <TinyUI/Core/Types.h>
+#include <TinyUI/Input/InputState.h>
+#include <TinyUI/Rendering/Renderer.h>
+#include <TinyUI/Theme/Theme.h>
 
 #include <string_view>
 
@@ -18,6 +21,8 @@ namespace tinyui {
 
 		float titleHeight = 36.f;
 		float titleFontSize = 14.f;
+
+		static PanelStyle FromTheme(const Theme& theme);
 	};
 
 	struct PanelResult {
@@ -27,5 +32,6 @@ namespace tinyui {
 		bool hovered = false;
 	};
 
+	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, const Theme& theme);
 	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, PanelStyle style = { });
 }

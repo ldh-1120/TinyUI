@@ -26,6 +26,10 @@ namespace tinyui {
 		return a + (b - a) * t;
 	}
 
+	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, const Theme& theme, SliderOptions options) {
+		return Slider(renderer, input, state, rect, label, value, options, SliderStyle::FromTheme(theme));
+	}
+
 	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options, SliderStyle style) {
 		SliderResult result { };
 		result.hovered = input.IsMouseOver(rect);
@@ -91,5 +95,19 @@ namespace tinyui {
 		}
 
 		return result;
+	}
+	
+	SliderStyle SliderStyle::FromTheme(const Theme& theme) {
+		SliderStyle style {};
+		style.labelTextColor = theme.slider.labelText;
+		style.valueTextColor = theme.slider.valueText;
+
+		style.trackColor = theme.slider.track;
+		style.fillColor = theme.slider.fill;
+		style.handleColor = theme.slider.handle;
+
+		style.borderColor = theme.slider.border;
+
+		return style;
 	}
 }

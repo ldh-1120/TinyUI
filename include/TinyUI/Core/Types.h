@@ -67,8 +67,12 @@ namespace tinyui {
 		float b = 1.f;
 		float a = 1.f;
 
-		static Color FromRGB(int r, int g, int b, int a = 255) {
+		static constexpr Color FromRGB(int r, int g, int b, int a = 255) {
 			return { r / 255.f, g / 255.f, b / 255.f, a / 255.f };
+		}
+
+		static constexpr Color FromHex(unsigned int rgb, int alpha = 255) {
+			return FromRGB(static_cast<int>((rgb >> 16) & 0xff), static_cast<int>((rgb >> 8) & 0xff), static_cast<int>(rgb & 0xff), alpha);
 		}
 	};
 }

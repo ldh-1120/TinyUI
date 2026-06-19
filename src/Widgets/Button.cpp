@@ -1,6 +1,10 @@
 #include <TinyUI/Widgets/Button.h>
 
 namespace tinyui {
+	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, const Theme& theme, ButtonOptions options) {
+		return Button(renderer, input, rect, text, options, ButtonStyle::FromTheme(theme));
+	}
+
 	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, ButtonOptions options, ButtonStyle style) {
 		ButtonResult result { };
 		result.hovered = input.IsMouseOver(rect);
@@ -28,5 +32,16 @@ namespace tinyui {
 		renderer.DrawTextBox(text, rect, style.textColor, style.fontSize, TextAlign::Center);
 
 		return result;
+	}
+
+	ButtonStyle ButtonStyle::FromTheme(const Theme& theme) {
+		ButtonStyle style { };
+		style.normalColor = theme.button.normal;
+		style.hoveredColor = theme.button.hovered;
+		style.pressedColor = theme.button.pressed;
+		style.borderColor = theme.button.border;
+		style.textColor = theme.button.text;
+
+		return style;
 	}
 }

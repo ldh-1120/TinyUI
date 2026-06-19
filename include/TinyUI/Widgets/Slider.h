@@ -1,6 +1,10 @@
 #pragma once
 
-#include<TinyUI/TinyUI.h>
+#include <TinyUI/Core/Types.h>
+#include <TinyUI/Input/InputState.h>
+#include <TinyUI/Input/MouseButton.h>
+#include <TinyUI/Rendering/Renderer.h>
+#include <TinyUI/Theme/Theme.h>
 
 #include <string_view>
 
@@ -22,6 +26,8 @@ namespace tinyui {
 
 		float trackHeight = 6.f;
 		float handleRadius = 7.f;
+
+		static SliderStyle FromTheme(const Theme& theme);
 	};
 
 	struct SliderOptions {
@@ -46,5 +52,6 @@ namespace tinyui {
 		float value = 0.f;
 	};
 
+	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, const Theme& theme, SliderOptions options = { });
 	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { }, SliderStyle style = { });
 }

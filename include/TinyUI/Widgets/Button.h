@@ -1,6 +1,10 @@
 #pragma once
 
-#include <TinyUI/TinyUI.h>
+#include <TinyUI/Core/Types.h>
+#include <TinyUI/Input/InputState.h>
+#include <TinyUI/Input/MouseButton.h>
+#include <TinyUI/Rendering/Renderer.h>
+#include <TinyUI/Theme/Theme.h>
 
 #include <string_view>
 
@@ -16,6 +20,8 @@ namespace tinyui {
 		float radius = 10.f;
 		float borderThickness = 1.f;
 		float fontSize = 14.f;
+
+		static ButtonStyle FromTheme(const Theme& theme);
 	};
 
 	struct ButtonOptions {
@@ -30,5 +36,6 @@ namespace tinyui {
 		MouseButton clickedButton = MouseButton::Left;
 	};
 
+	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, const Theme& theme, ButtonOptions options = { });
 	ButtonResult Button(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view text, ButtonOptions options = { }, ButtonStyle style = { });
 }

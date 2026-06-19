@@ -5,6 +5,10 @@ namespace tinyui {
 		return a > b ? a : b;
 	}
 
+	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, const Theme& theme) {
+		return Panel(renderer, input, rect, title, PanelStyle::FromTheme(theme));
+	}
+
 	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, PanelStyle style) {
 		PanelResult result { };
 		result.rect = rect;
@@ -24,5 +28,14 @@ namespace tinyui {
 
 		result.contentRect = { rect.x + style.padding, contentY, MaxFloat(0.f, rect.w - style.padding * 2.f), MaxFloat(0.f, rect.y + rect.h - contentY - style.padding) };
 		return result;
+	}
+
+	PanelStyle PanelStyle::FromTheme(const Theme& theme) {
+		PanelStyle style { };
+		style.backgroundColor = theme.panel.background;
+		style.borderColor = theme.panel.border;
+		style.titleTextColor = theme.panel.titleText;
+
+		return style;
 	}
 }
