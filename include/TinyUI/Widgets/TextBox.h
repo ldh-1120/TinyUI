@@ -14,6 +14,9 @@ namespace tinyui {
         float scrollX = 0.f;
 
         std::size_t cursorIndex = 0;
+
+        std::size_t selectionStart = 0;
+        std::size_t selectionEnd = 0;
     };
 
 	struct TextBoxStyle {

@@ -11,6 +11,51 @@ namespace tinyui {
 		return value;
 	}
 
+	static std::size_t MinSize(std::size_t left, std::size_t right) {
+		if (left < right)
+			return left;
+
+		return right;
+	}
+
+	static std::size_t MaxSize(std::size_t left, std::size_t right) {
+		if (left > right)
+			return left;
+
+		return right;
+	}
+
+	static bool HasSelection(const tinyui::TextBoxState& state) {
+		return state.selectionStart != state.selectionEnd;
+	}
+
+	static std::size_t GetSelectionStart(const tinyui::TextBoxState& state) {
+		return MinSize(state.selectionStart, state.selectionEnd);
+	}
+
+	static std::size_t GetSelectionEnd(const tinyui::TextBoxState& state) {
+		return MaxSize(state.selectionStart, state.selectionEnd);
+	}
+
+	static void ClearSelection(tinyui::TextBoxState& state) {
+		state.selectionStart = state.cursorIndex;
+		state.selectionEnd = state.cursorIndex;
+	}
+
+	static void DeleteSelection(std::wstring& value, tinyui::TextBoxState& state) {
+		if (!HasSelection(state))
+			return;
+
+		std::size_t selectionStart = GetSelectionStart(state);
+		std::size_t selectionEnd = GetSelectionEnd(state);
+
+		value.erase(selectionStart, selectionEnd - selectionStart);
+		
+		state.cursorIndex = selectionStart;
+
+		ClearSelection(state);
+	}
+
 	TextBoxStyle TextBoxStyle::FromTheme(const Theme& theme) {
 		TextBoxStyle style {};
 
@@ -24,6 +69,7 @@ namespace tinyui {
 		style.textColor = theme.textBox.text;
 		style.placeholderColor = theme.textBox.placeholder;
 		style.cursorColor = theme.textBox.cursor;
+		style.selectionColor = theme.textBox.selection;
 
 		return style;
 	}
@@ -50,6 +96,8 @@ namespace tinyui {
 				float localTextX = mousePosition.x - textRect.x + state.scrollX;
 				state.cursorIndex = renderer.HitTestTextPosition(value, style.fontSize, localTextX);
 
+				ClearSelection(state);
+
 				result.focused = true;
 			} else if (context.IsFocused(id)) {
 				context.ClearFocusedId();
@@ -60,45 +108,122 @@ namespace tinyui {
 		if (state.cursorIndex > value.size())
 			state.cursorIndex = value.size();
 
+		if (state.selectionStart > value.size())
+			state.selectionStart = value.size();
+
+		if (state.selectionEnd > value.size())
+			state.selectionEnd = value.size();
+
 		if (context.IsTextInputActive(id)) {
+			if (input.WasShortcutPressed(KeyCode::A, true, false, false)) {
+				state.selectionStart = 0;
+				state.selectionEnd = value.size();
+				state.cursorIndex = value.size();
+			}
+
 			const std::wstring& textInput = input.GetTextInput();
 			if (!textInput.empty()) {
+				if (HasSelection(state))
+					DeleteSelection(value, state);
+
 				value.insert(state.cursorIndex, textInput);
 				state.cursorIndex += textInput.size();
+
+				ClearSelection(state);
 
 				result.changed = true;
 			}
 
 			if (input.WasKeyPressed(KeyCode::Backspace)) {
-				if (state.cursorIndex > 0 && !value.empty()) {
+				if (HasSelection(state)) {
+					DeleteSelection(value, state);
+					result.changed = true;
+				} else if (state.cursorIndex > 0 && !value.empty()) {
 					value.erase(state.cursorIndex - 1, 1);
 					--state.cursorIndex;
+
+					ClearSelection(state);
 
 					result.changed = true;
 				}
 			}
 
 			if (input.WasKeyPressed(KeyCode::Delete)) {
-				if (state.cursorIndex < value.size()) {
+				if (HasSelection(state)) {
+					DeleteSelection(value, state);
+					result.changed = true;
+				} else if (state.cursorIndex < value.size()) {
 					value.erase(state.cursorIndex, 1);
+
+					ClearSelection(state);
 
 					result.changed = true;
 				}
 			}
 
-			if (input.WasKeyPressed(KeyCode::Right))
-				if (state.cursorIndex < value.size())
-					++state.cursorIndex;
+			if (input.WasKeyPressed(KeyCode::Left)) {
+				if (input.IsShiftDown()) {
+					if (!HasSelection(state))
+						state.selectionStart = state.cursorIndex;
 
-			if (input.WasKeyPressed(KeyCode::Left))
-				if (state.cursorIndex > 0)
-					--state.cursorIndex;
+					if (state.cursorIndex > 0)
+						--state.cursorIndex;
 
-			if (input.WasKeyPressed(KeyCode::Home))
-				state.cursorIndex = 0;
+					state.selectionEnd = state.cursorIndex;
+				} else {
+					if (HasSelection(state))
+						state.cursorIndex = state.selectionStart;
+					else if (state.cursorIndex > 0)
+						--state.cursorIndex;
 
-			if (input.WasKeyPressed(KeyCode::End))
-				state.cursorIndex = value.size();
+					ClearSelection(state);
+				}
+			}
+
+			if (input.WasKeyPressed(KeyCode::Right)) {
+				if (input.IsShiftDown()) {
+					if (!HasSelection(state))
+						state.selectionStart = state.cursorIndex;
+
+					if (state.cursorIndex < value.size())
+						++state.cursorIndex;
+
+					state.selectionEnd = state.cursorIndex;
+				} else {
+					if (HasSelection(state))
+						state.cursorIndex = state.selectionEnd;
+					else if (state.cursorIndex < value.size())
+						++state.cursorIndex;
+
+					ClearSelection(state);
+				}
+			}
+
+			if (input.WasKeyPressed(KeyCode::Home)) {
+				if (input.IsShiftDown()) {
+					if (!HasSelection(state))
+						state.selectionStart = state.cursorIndex;
+
+					state.cursorIndex = 0;
+					state.selectionEnd = state.cursorIndex;
+				} else {
+					state.cursorIndex = 0;
+					ClearSelection(state);
+				}
+			}
+
+			if (input.WasKeyPressed(KeyCode::End)) {
+				if (input.IsShiftDown()) {
+					if (!HasSelection(state))
+						state.selectionStart = state.cursorIndex;
+
+					state.cursorIndex = value.size();
+					state.selectionEnd = state.cursorIndex;
+				} else {
+					state.cursorIndex = value.size();
+					ClearSelection(state);
+				}
+			}
 
 			if (input.WasKeyPressed(KeyCode::Enter)) {
 				if (options.submitOnEnter)
@@ -157,6 +282,20 @@ namespace tinyui {
 		state.scrollX = ClampFloat(state.scrollX, 0.f, maxScrollX);
 
 		renderer.PushClip(textRect);
+
+		if (result.focused && HasSelection(state) && !value.empty()) {
+			std::size_t selectionStart = GetSelectionStart(state);
+			std::size_t selectionEnd = GetSelectionEnd(state);
+
+			std::wstring textBeforeSelection = value.substr(0, selectionStart);
+			std::wstring selectedText = value.substr(selectionStart, selectionEnd - selectionStart);
+			Size beforeSelectionSize = renderer.MeasureText(textBeforeSelection, style.fontSize);
+			Size selectedTextSize = renderer.MeasureText(selectedText, style.fontSize);
+
+			float selectionX = textRect.x + beforeSelectionSize.width - state.scrollX;
+			Rect selectionRect { selectionX, rect.y + 6.f, selectedTextSize.width, rect.h - 12.f };
+			renderer.FillRect(selectionRect, style.selectionColor, 4.f);
+		}
 
 		if (!value.empty()) {
 			Rect shiftedTextRect { textRect.x - state.scrollX, textRect.y, textSize.width + 32.f, textRect.h };
