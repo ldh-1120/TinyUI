@@ -2,6 +2,7 @@
 
 #include <TinyUI/Core/Types.h>
 #include <TinyUI/Input/MouseButton.h>
+#include <TinyUI/Input/KeyCode.h>
 #include <TinyUI/Input/InputState.h>
 #include <TinyUI/Rendering/Renderer.h>
 #include <TinyUI/Layout/Layout.h>
@@ -12,6 +13,7 @@
 #include <TinyUI/Widgets/Button.h>
 #include <TinyUI/Widgets/Panel.h>
 #include <TinyUI/Widgets/Slider.h>
+#include <TinyUI/Widgets/TextBox.h>
 
 namespace tinyui {
 

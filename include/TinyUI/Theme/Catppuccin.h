@@ -450,6 +450,17 @@ namespace tinyui {
         theme.slider.labelText = palette.text;
         theme.slider.valueText = palette.subtext1;
 
+        theme.textBox.background = palette.surface0;
+        theme.textBox.backgroundHovered = palette.surface1;
+        theme.textBox.backgroundFocused = palette.surface0;
+        theme.textBox.border = palette.surface2;
+        theme.textBox.borderFocused = palette.mauve;
+        theme.textBox.text = palette.text;
+        theme.textBox.placeholder = palette.overlay1;
+        theme.textBox.cursor = palette.text;
+        theme.textBox.selection = palette.mauve;
+        theme.textBox.selection.a = 0.35f;
+
         return theme;
     }
 

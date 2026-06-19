@@ -23,6 +23,9 @@ namespace tinyui {
 	}
 
 	void Renderer::End() {
+		while (m_renderTarget && m_clipDepth > 0)
+			PopClip();
+
 		m_renderTarget = nullptr;
 	}
 
@@ -31,6 +34,28 @@ namespace tinyui {
 			return;
 
 		m_renderTarget->Clear(ToD2DColor(color));
+	}
+
+	void Renderer::PushClip(Rect rect) {
+		if (!m_renderTarget)
+			return;
+
+		m_renderTarget->PushAxisAlignedClip(ToD2DRect(rect), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+		
+		++m_clipDepth;
+	}
+
+	void Renderer::PopClip() {
+		if (!m_renderTarget)
+			return;
+
+		m_renderTarget->PopAxisAlignedClip();
+
+		--m_clipDepth;
+	}
+
+	std::size_t Renderer::GetClipDepth() const {
+		return m_clipDepth;
 	}
 
 	void Renderer::FillRect(Rect rect, Color color, float radius) {
@@ -67,15 +92,16 @@ namespace tinyui {
 		}
 	}
 
-	void Renderer::DrawTextBox(std::wstring_view text, Rect rect, Color color, float fontSize, TextAlign align) {
+	void Renderer::DrawTextBox(std::wstring_view text, Rect rect, Color color, float fontSize, TextAlign align, TextWrap wrap) {
 		if (!m_renderTarget || !m_dwriteFactory || text.empty())
 			return;
 
 		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
-
 		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
 		if (FAILED(hr))
 			return;
+
+		textFormat->SetWordWrapping(wrap == TextWrap::NoWrap ? DWRITE_WORD_WRAPPING_NO_WRAP : DWRITE_WORD_WRAPPING_WRAP);
 
 		switch (align) {
 			case tinyui::TextAlign::Left:
@@ -97,5 +123,63 @@ namespace tinyui {
 			return;
 
 		m_renderTarget->DrawTextW(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), ToD2DRect(rect), brush.Get());
+	}
+
+	Size Renderer::MeasureText(std::wstring_view text, float fontSize) {
+		if (!m_dwriteFactory || text.empty())
+			return { };
+
+		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
+		if (FAILED(hr))
+			return { };
+
+		textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), 100000.f, 100000.f, textLayout.GetAddressOf());
+		if (FAILED(hr))
+			return { };
+
+		DWRITE_TEXT_METRICS metrics { };
+		hr = textLayout->GetMetrics(&metrics);
+		if (FAILED(hr))
+			return { };
+
+		return { metrics.widthIncludingTrailingWhitespace, metrics.height };
+	}
+
+	std::size_t Renderer::HitTestTextPosition(std::wstring_view text, float fontSize, float x) {
+		if (!m_dwriteFactory || text.empty() || x <= 0.f)
+			return 0;
+
+		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
+		if (FAILED(hr))
+			return 0;
+
+		textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), 100000.f, 100000.f, textLayout.GetAddressOf());
+		if (FAILED(hr))
+			return 0;
+
+		BOOL isTrailingHit = FALSE;
+		BOOL isInside = FALSE;
+
+		DWRITE_HIT_TEST_METRICS hitMetrics { };
+		hr = textLayout->HitTestPoint(x, fontSize * 0.5f, &isTrailingHit, &isInside, &hitMetrics);
+		if (FAILED(hr))
+			return 0;
+
+		std::size_t index = static_cast<std::size_t>(hitMetrics.textPosition);
+		if (isTrailingHit)
+			index += static_cast<std::size_t>(hitMetrics.length);
+
+		if (index > text.size())
+			index = text.size();
+
+		return index;
 	}
 }

@@ -123,7 +123,9 @@ namespace tinyui {
 				continue;
 
 			if (result.hovered && input.WasMousePressed(button)) {
-				context.SetActiveId(id);
+				context.SetActiveId(id, button);
+				context.SetFocusedId(id);
+				context.ClearTextInputId();
 				state.dragButton = button;
 			}
 		}

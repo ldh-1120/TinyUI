@@ -44,6 +44,20 @@ namespace tinyui {
 		Color valueText { };
 	};
 
+	struct TextBoxTheme {
+		Color background { };
+		Color backgroundHovered { };
+		Color backgroundFocused { };
+
+		Color border { };
+		Color borderFocused { };
+
+		Color text { };
+		Color placeholder { };
+		Color cursor { };
+		Color selection { };
+	};
+
 	struct Theme {
 		std::wstring name = L"Unnamed Theme";
 
@@ -59,5 +73,6 @@ namespace tinyui {
 		PanelTheme panel { };
 		ButtonTheme button { };
 		SliderTheme slider { };
+		TextBoxTheme textBox { };
 	};
 }

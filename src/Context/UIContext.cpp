@@ -80,6 +80,7 @@ namespace tinyui {
 
 	void UIContext::ClearFocusedId() {
 		m_focusedId = WidgetId::Invalid();
+		m_textInputId = WidgetId::Invalid();
 	}
 
 	WidgetId UIContext::GetHoveredId() const {
@@ -117,4 +118,24 @@ namespace tinyui {
 	MouseButton UIContext::GetActiveMouseButton() const {
 		return m_activeMouseButton;
 	}
+
+	void UIContext::SetTextInputId(WidgetId id) {
+		m_textInputId = id;
+	}
+
+	void UIContext::ClearTextInputId() {
+		m_textInputId = WidgetId::Invalid();
+	}
+
+	WidgetId UIContext::GetTextInputId() const {
+		return m_textInputId;
+	}
+
+	bool UIContext::HasTextInputId() const {
+		return m_textInputId.IsValid();
+	}
+
+	bool UIContext::IsTextInputActive(WidgetId id) const {
+		return m_textInputId == id;
+	}	
 }

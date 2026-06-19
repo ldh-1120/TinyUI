@@ -157,6 +157,7 @@
     <ClInclude Include="include\TinyUI\Core\Types.h" />
     <ClInclude Include="include\TinyUI\Core\WidgetId.h" />
     <ClInclude Include="include\TinyUI\Input\InputState.h" />
+    <ClInclude Include="include\TinyUI\Input\KeyCode.h" />
     <ClInclude Include="include\TinyUI\Input\MouseButton.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
     <ClInclude Include="include\TinyUI\Rendering\Renderer.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="include\TinyUI\Widgets\Button.h" />
     <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
     <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
+    <ClInclude Include="include\TinyUI\Widgets\TextBox.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Context\UIContext.cpp" />
@@ -177,6 +179,7 @@
     <ClCompile Include="src\Widgets\Button.cpp" />
     <ClCompile Include="src\Widgets\Panel.cpp" />
     <ClCompile Include="src\Widgets\Slider.cpp" />
+    <ClCompile Include="src\Widgets\TextBox.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
