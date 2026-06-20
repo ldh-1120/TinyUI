@@ -20,3 +20,6 @@
 #include <TinyUI/Widgets/ScrollPanel.h>
 #include <TinyUI/Widgets/Dropdown.h>
 #include <TinyUI/Widgets/TabBar.h>
+#include <TinyUI/Widgets/Tooltip.h>
+#include <TinyUI/Widgets/Label.h>
+#include <TinyUI/Widgets/Separator.h>

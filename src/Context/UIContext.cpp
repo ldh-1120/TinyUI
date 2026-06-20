@@ -178,6 +178,26 @@ namespace tinyui {
 			m_overlayCallbacks[index](*m_renderer);
 	}
 
+	bool UIContext::UpdateTooltip(WidgetId id, bool hovered, double delaySeconds) {
+		if (!hovered) {
+			if (m_tooltipTargetId == id) {
+				m_tooltipTargetId = WidgetId::Invalid();
+				m_tooltipStartTime = 0.;
+			}
+
+			return false;
+		}
+
+		if (m_tooltipTargetId != id) {
+			m_tooltipTargetId = id;
+			m_tooltipStartTime = m_timeSeconds;
+
+			return false;
+		}
+
+		return m_timeSeconds - m_tooltipStartTime >= delaySeconds;
+	}
+
 	void UIContext::SetTextInputId(WidgetId id) {
 		m_textInputId = id;
 	}

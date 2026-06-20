@@ -169,12 +169,15 @@
     <ClInclude Include="include\TinyUI\Widgets\Button.h" />
     <ClInclude Include="include\TinyUI\Widgets\Checkbox.h" />
     <ClInclude Include="include\TinyUI\Widgets\Dropdown.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Label.h" />
     <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
     <ClInclude Include="include\TinyUI\Widgets\ScrollPanel.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Separator.h" />
     <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
     <ClInclude Include="include\TinyUI\Widgets\TabBar.h" />
     <ClInclude Include="include\TinyUI\Widgets\TextBox.h" />
     <ClInclude Include="include\TinyUI\Widgets\Toggle.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Tooltip.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Widgets\Dropdown.cpp" />
@@ -185,12 +188,15 @@
     <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
     <ClCompile Include="src\Widgets\Button.cpp" />
     <ClCompile Include="src\Widgets\Checkbox.cpp" />
+    <ClCompile Include="src\Widgets\Label.cpp" />
     <ClCompile Include="src\Widgets\Panel.cpp" />
     <ClCompile Include="src\Widgets\ScrollPanel.cpp" />
+    <ClCompile Include="src\Widgets\Separator.cpp" />
     <ClCompile Include="src\Widgets\Slider.cpp" />
     <ClCompile Include="src\Widgets\TabBar.cpp" />
     <ClCompile Include="src\Widgets\TextBox.cpp" />
     <ClCompile Include="src\Widgets\Toggle.cpp" />
+    <ClCompile Include="src\Widgets\Tooltip.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

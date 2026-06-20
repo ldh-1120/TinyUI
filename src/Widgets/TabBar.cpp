@@ -107,7 +107,7 @@ namespace tinyui {
 		for (int index = 0; index < tabCount; ++index) {
 			float tabWidth = 0.f;
 			if (options.stretchTabs)
-				tabWidth = rect.w / static_cast<float>(tabCount);
+				tabWidth = (rect.w - (tabCount - 1) * style.gap) / static_cast<float>(tabCount);
 			else {
 				Size textSize = renderer.MeasureText(tabs[index], style.fontSize);
 				tabWidth = textSize.width + style.paddingX * 2.f;

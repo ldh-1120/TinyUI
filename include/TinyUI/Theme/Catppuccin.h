@@ -505,6 +505,17 @@ namespace tinyui {
         theme.tabBar.text = palette.subtext1;
         theme.tabBar.selectedText = palette.text;
 
+        theme.tooltip.background = palette.surface0;
+        theme.tooltip.border = palette.surface2;
+        theme.tooltip.text = palette.text;
+
+        theme.label.text = palette.text;
+        theme.label.mutedText = palette.subtext1;
+        theme.label.headingText = palette.text;
+
+        theme.separator.line = palette.surface2;
+        theme.separator.text = palette.subtext1;
+
         return theme;
     }
 

@@ -69,6 +69,8 @@ namespace tinyui {
 		void AddOverlay(std::function<void(Renderer&)> drawCallback);
 		void DrawOverlays();
 
+		bool UpdateTooltip(WidgetId id, bool hovered, double delaySeconds);
+
 	private:
 		Renderer* m_renderer = nullptr;
 
@@ -79,12 +81,15 @@ namespace tinyui {
 		WidgetId m_activeId = WidgetId::Invalid();
 		WidgetId m_focusedId = WidgetId::Invalid();
 		WidgetId m_textInputId = WidgetId::Invalid();
+		WidgetId m_tooltipTargetId = WidgetId::Invalid();
 
 		MouseButton m_activeMouseButton = MouseButton::Left;
 
 		double m_timeSeconds = 0.;
 		double m_deltaTimeSeconds = 0.;
 		bool m_hasTime = false;
+
+		double m_tooltipStartTime = 0.;
 
 		std::vector<Rect> m_mouseBlockers { };
 		std::vector<std::function<void(Renderer&)>> m_overlayCallbacks { };

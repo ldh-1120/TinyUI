@@ -81,6 +81,15 @@
     <ClInclude Include="include\TinyUI\Widgets\TabBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\Tooltip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\Label.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\Separator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Widgets\Button.cpp">
@@ -123,6 +132,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Widgets\TabBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\Tooltip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\Label.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\Separator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

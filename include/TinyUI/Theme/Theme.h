@@ -123,6 +123,23 @@ namespace tinyui {
 		Color selectedText { };
 	};
 
+	struct TooltipTheme {
+		Color background { };
+		Color border { };
+		Color text { };
+	};
+
+	struct LabelTheme {
+		Color text { };
+		Color mutedText { };
+		Color headingText { };
+	};
+
+	struct SeparatorTheme {
+		Color line { };
+		Color text { };
+	};
+
 	struct Theme {
 		std::wstring name = L"Unnamed Theme";
 
@@ -144,5 +161,8 @@ namespace tinyui {
 		ScrollPanelTheme scrollPanel { };
 		DropdownTheme dropdown { };
 		TabBarTheme tabBar { };
+		TooltipTheme tooltip { };
+		LabelTheme label { };
+		SeparatorTheme separator { };
 	};
 }
