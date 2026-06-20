@@ -28,7 +28,7 @@ namespace tinyui {
         const InputState& input = context.GetInput();
 
         CheckboxResult result { };
-        result.hovered = input.IsMouseOver(rect);
+        result.hovered = context.IsMouseOver(rect);
         result.checked = checked;
         if (result.hovered)
             context.SetHoveredId(id);

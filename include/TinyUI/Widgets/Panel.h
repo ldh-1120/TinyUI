@@ -33,8 +33,6 @@ namespace tinyui {
 		bool hovered = false;
 	};
 
-	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, PanelStyle style = { });
-	PanelResult Panel(Renderer& renderer, const InputState& input, Rect rect, std::wstring_view title, const Theme& theme);
 	PanelResult Panel(UIContext& context, WidgetId id, Rect rect, std::wstring_view title);
-	PanelResult Panel(UIContext& context, Rect rect, std::wstring_view title);
+	PanelResult Panel(UIContext& context, WidgetId id, Rect rect, std::wstring_view title, PanelStyle style);
 }

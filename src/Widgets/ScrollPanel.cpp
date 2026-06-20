@@ -34,7 +34,7 @@ namespace tinyui {
 
 		ScrollPanelResult result { };
 		result.rect = rect;
-		result.hovered = input.IsMouseOver(rect);
+		result.hovered = context.IsMouseOver(rect);
 		if (result.hovered)
 			context.SetHoveredId(id);
 
@@ -52,7 +52,7 @@ namespace tinyui {
 			visibleRect.w = 0.f;
 
 		if (visibleRect.h < 0.f)
-			visibleRect.h < 0.f;
+			visibleRect.h = 0.f;
 
 		float contentHeight = options.contentHeight;
 		if (contentHeight < visibleRect.h)
@@ -93,7 +93,7 @@ namespace tinyui {
 				scrollRatio = state.scrollY / maxScrollY;
 
 			Rect scrollbarThumb { scrollbarTrack.x, scrollbarTrack.y + scrollRatio * availableThumbMove, scrollbarTrack.w, thumbHeight };
-			result.scrollbarHovered = input.IsMouseOver(scrollbarThumb);
+			result.scrollbarHovered = context.IsMouseOver(scrollbarThumb);
 			if (result.scrollbarHovered && context.CanActive(id) && input.WasMousePressed(MouseButton::Left)) {
 				context.SetActiveId(id, MouseButton::Left);
 				context.SetFocusedId(id);
@@ -128,7 +128,7 @@ namespace tinyui {
 				scrollRatio = state.scrollY / maxScrollY;
 
 			scrollbarThumb = { scrollbarTrack.x, scrollbarTrack.y + scrollRatio * availableThumbMove, scrollbarTrack.w, thumbHeight };
-			result.scrollbarHovered = input.IsMouseOver(scrollbarThumb);
+			result.scrollbarHovered = context.IsMouseOver(scrollbarThumb);
 			result.scrollbarDragging = state.draggingThumb;
 			renderer.FillRect(scrollbarTrack, style.scrollbarTrackColor, style.scrollbarRadius);
 

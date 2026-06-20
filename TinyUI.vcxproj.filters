@@ -75,6 +75,9 @@
     <ClInclude Include="include\TinyUI\Widgets\ScrollPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\Dropdown.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\TinyUI.cpp">
@@ -114,6 +117,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Widgets\ScrollPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\Dropdown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

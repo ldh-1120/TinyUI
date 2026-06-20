@@ -55,8 +55,6 @@ namespace tinyui {
 		float value = 0.f;
 	};
 
-	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { }, SliderStyle style = { });
-	SliderResult Slider(Renderer& renderer, const InputState& input, SliderState& state, Rect rect, std::wstring_view label, float& value, const Theme& theme, SliderOptions options = { });
 	SliderResult Slider(UIContext& context, WidgetId id, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { });
 	SliderResult Slider(UIContext& context, SliderState& state, Rect rect, std::wstring_view label, float& value, SliderOptions options = { });
 }

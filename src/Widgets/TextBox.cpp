@@ -211,7 +211,7 @@ namespace tinyui {
 		const InputState& input = context.GetInput();
 
 		TextBoxResult result { };
-		result.hovered = input.IsMouseOver(rect);
+		result.hovered = context.IsMouseOver(rect);
 		result.focused = context.IsFocused(id);
 
 		bool cursorChanged = false;
@@ -513,7 +513,7 @@ namespace tinyui {
 
 		Size textSize = renderer.MeasureText(displayValue, style.fontSize);
 
-		std::wstring textBeforeCursor = value.substr(0, displayCursorIndex);
+		std::wstring textBeforeCursor = displayValue.substr(0, displayCursorIndex);
 		Size cursorTextSize = renderer.MeasureText(textBeforeCursor, style.fontSize);
 
 		float visibleTextWidth = textRect.w - 4.f;

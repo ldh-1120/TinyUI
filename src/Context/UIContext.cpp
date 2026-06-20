@@ -1,6 +1,7 @@
 #include <TinyUI/Context/UIContext.h>
 
 #include <cassert>
+#include <utility>
 
 namespace tinyui {
 	void UIContext::BeginFrame(Renderer& renderer) {
@@ -11,6 +12,9 @@ namespace tinyui {
 	void UIContext::BeginFrame(Renderer& renderer, double timeSeconds) {
 		m_renderer = &renderer;
 		m_hoveredId = WidgetId::Invalid();
+
+		m_mouseBlockers.clear();
+		m_overlayCallbacks.clear();
 		if (!m_hasTime) {
 			m_deltaTimeSeconds = 0.;
 			m_hasTime = true;
@@ -140,6 +144,38 @@ namespace tinyui {
 
 	MouseButton UIContext::GetActiveMouseButton() const {
 		return m_activeMouseButton;
+	}
+
+	bool UIContext::IsMouseOver(Rect rect) const {
+		if (!m_input.IsMouseOver(rect))
+			return false;
+
+		return !IsMouseBlockedAt(m_input.GetMousePosition());
+	}
+
+	void UIContext::AddMouseBlocker(Rect rect) {
+		m_mouseBlockers.push_back(rect);
+	}
+
+	bool UIContext::IsMouseBlockedAt(Vec2 point) const {
+		for (std::size_t index = 0; index < m_mouseBlockers.size(); ++index) {
+			if (m_mouseBlockers[index].Contains(point))
+				return true;
+		}
+
+		return false;
+	}
+
+	void UIContext::AddOverlay(std::function<void(Renderer&)> drawCallback) {
+		m_overlayCallbacks.push_back(std::move(drawCallback));
+	}
+
+	void UIContext::DrawOverlays() {
+		if (!m_renderer)
+			return;
+
+		for (std::size_t index = 0; index < m_overlayCallbacks.size(); ++index)
+			m_overlayCallbacks[index](*m_renderer);
 	}
 
 	void UIContext::SetTextInputId(WidgetId id) {

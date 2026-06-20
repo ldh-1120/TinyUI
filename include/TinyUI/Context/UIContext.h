@@ -7,6 +7,8 @@
 #include <TinyUI/Theme/ThemeRegistry.h>
 
 #include <string_view>
+#include <functional>
+#include <vector>
 
 namespace tinyui {
 	class UIContext {
@@ -59,6 +61,14 @@ namespace tinyui {
 
 		MouseButton GetActiveMouseButton() const;
 
+		bool IsMouseOver(Rect rect) const;
+
+		void AddMouseBlocker(Rect rect);
+		bool IsMouseBlockedAt(Vec2 point) const;
+
+		void AddOverlay(std::function<void(Renderer&)> drawCallback);
+		void DrawOverlays();
+
 	private:
 		Renderer* m_renderer = nullptr;
 
@@ -75,5 +85,8 @@ namespace tinyui {
 		double m_timeSeconds = 0.;
 		double m_deltaTimeSeconds = 0.;
 		bool m_hasTime = false;
+
+		std::vector<Rect> m_mouseBlockers { };
+		std::vector<std::function<void(Renderer&)>> m_overlayCallbacks { };
 	};
 }

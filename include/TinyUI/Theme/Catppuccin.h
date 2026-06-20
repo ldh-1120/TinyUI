@@ -482,6 +482,19 @@ namespace tinyui {
         theme.scrollPanel.scrollbarThumb = palette.overlay0;
         theme.scrollPanel.scrollbarThumbHovered = palette.overlay1;
 
+        theme.dropdown.background = palette.surface0;
+        theme.dropdown.backgroundHovered = palette.surface1;
+        theme.dropdown.backgroundOpened = palette.surface1;
+        theme.dropdown.border = palette.surface2;
+        theme.dropdown.borderFocused = palette.mauve;
+        theme.dropdown.text = palette.text;
+        theme.dropdown.placeholder = palette.overlay1;
+        theme.dropdown.arrow = palette.text;
+        theme.dropdown.menuBackground = palette.mantle;
+        theme.dropdown.itemHovered = palette.surface0;
+        theme.dropdown.itemSelected = palette.mauve;
+        theme.dropdown.itemSelected.a = 0.35f;
+
         return theme;
     }
 

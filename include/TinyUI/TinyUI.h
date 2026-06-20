@@ -18,6 +18,7 @@
 #include <TinyUI/Widgets/Checkbox.h>
 #include <TinyUI/Widgets/Toggle.h>
 #include <TinyUI/Widgets/ScrollPanel.h>
+#include <TinyUI/Widgets/Dropdown.h>
 
 namespace tinyui {
 

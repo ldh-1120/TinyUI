@@ -31,7 +31,7 @@ namespace tinyui {
         const InputState& input = context.GetInput();
 
         ToggleResult result { };
-        result.hovered = input.IsMouseOver(rect);
+        result.hovered = context.IsMouseOver(rect);
         result.enabled = enabled;
         if (result.hovered)
             context.SetHoveredId(id);
