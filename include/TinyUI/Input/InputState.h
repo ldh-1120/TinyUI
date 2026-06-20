@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <string_view>
 
 namespace tinyui {
 	class InputState {
@@ -19,6 +20,8 @@ namespace tinyui {
 
 		void SetKey(KeyCode key, bool down);
 		void AddTextCharacter(wchar_t character);
+		void AddTextInput(std::wstring_view text);
+		void AddKeyRepeat(KeyCode key);
 
 		Vec2 GetMousePosition() const;
 
@@ -35,6 +38,8 @@ namespace tinyui {
 		bool IsKeyDown(KeyCode key) const;
 		bool WasKeyPressed(KeyCode key) const;
 		bool WasKeyReleased(KeyCode key) const;
+		bool WasKeyRepeated(KeyCode key) const;
+		bool WasKeyPressedOrRepeated(KeyCode key) const;
 
 		bool IsControlDown() const;
 		bool IsShiftDown() const;
@@ -43,6 +48,12 @@ namespace tinyui {
 		bool WasShortcutPressed(KeyCode key, bool control, bool shift, bool alt) const;
 
 		const std::wstring& GetTextInput() const;
+
+		void SetCompositionText(std::wstring_view text);
+		void ClearCompositionText();
+
+		const std::wstring& GetCompositionText() const;
+		bool HasCompositionText() const;
 
 	private:
 		static std::size_t ToIndex(MouseButton button);
@@ -60,7 +71,9 @@ namespace tinyui {
 		std::array<bool, KeyCodeCount> m_keyDown { };
 		std::array<bool, KeyCodeCount> m_keyPressed { };
 		std::array<bool, KeyCodeCount> m_keyReleased { };
+		std::array<bool, KeyCodeCount> m_keyRepeated { };
 
 		std::wstring m_textInput { };
+		std::wstring m_compositionText { };
 	};
 }

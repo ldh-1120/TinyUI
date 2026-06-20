@@ -16,6 +16,7 @@ namespace tinyui {
 
 		m_keyPressed.fill(false);
 		m_keyReleased.fill(false);
+		m_keyRepeated.fill(false);
 		m_textInput.clear();
 	}
 
@@ -59,6 +60,18 @@ namespace tinyui {
 
 	void InputState::AddTextCharacter(wchar_t character) {
 		m_textInput.push_back(character);
+	}
+
+	void InputState::AddTextInput(std::wstring_view text) {
+		m_textInput += text;
+	}
+
+	void InputState::AddKeyRepeat(KeyCode key) {
+		const std::size_t index = ToIndex(key);
+		if (index == 0 || index >= KeyCodeCount)
+			return;
+
+		m_keyRepeated[index] = true;
 	}
 
 	Vec2 InputState::GetMousePosition() const {
@@ -129,6 +142,18 @@ namespace tinyui {
 		return m_keyReleased[index];
 	}
 
+	bool InputState::WasKeyRepeated(KeyCode key) const {
+		const std::size_t index = ToIndex(key);
+		if (index == 0 || index >= KeyCodeCount)
+			return false;
+
+		return m_keyRepeated[index];
+	}
+
+	bool InputState::WasKeyPressedOrRepeated(KeyCode key) const {
+		return WasKeyPressed(key) || WasKeyRepeated(key);
+	}
+
 	bool InputState::IsControlDown() const {
 		return IsKeyDown(KeyCode::Control);
 	}
@@ -159,5 +184,21 @@ namespace tinyui {
 
 	const std::wstring& InputState::GetTextInput() const {
 		return m_textInput;
+	}
+
+	void InputState::SetCompositionText(std::wstring_view text) {
+		m_compositionText = text;
+	}
+
+	void InputState::ClearCompositionText() {
+		m_compositionText.clear();
+	}
+
+	const std::wstring& InputState::GetCompositionText() const {
+		return m_compositionText;
+	}
+
+	bool InputState::HasCompositionText() const {
+		return !m_compositionText.empty();
 	}
 }

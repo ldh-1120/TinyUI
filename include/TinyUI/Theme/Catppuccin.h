@@ -461,6 +461,27 @@ namespace tinyui {
         theme.textBox.selection = palette.mauve;
         theme.textBox.selection.a = 0.35f;
 
+        theme.checkbox.boxBackground = palette.surface0;
+        theme.checkbox.boxHovered = palette.surface1;
+        theme.checkbox.boxChecked = palette.mauve;
+        theme.checkbox.border = palette.surface2;
+        theme.checkbox.checkmark = palette.base;
+        theme.checkbox.text = palette.text;
+
+        theme.toggle.trackOff = palette.surface0;
+        theme.toggle.trackOffHovered = palette.surface1;
+        theme.toggle.trackOn = palette.mauve;
+        theme.toggle.trackOnHovered = palette.lavender;
+        theme.toggle.knob = palette.text;
+        theme.toggle.border = palette.surface2;
+        theme.toggle.text = palette.text;
+
+        theme.scrollPanel.background = palette.mantle;
+        theme.scrollPanel.border = palette.surface1;
+        theme.scrollPanel.scrollbarTrack = palette.surface0;
+        theme.scrollPanel.scrollbarThumb = palette.overlay0;
+        theme.scrollPanel.scrollbarThumbHovered = palette.overlay1;
+
         return theme;
     }
 

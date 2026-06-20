@@ -33,6 +33,9 @@ namespace tinyui {
 
 		void FillRect(Rect rect, Color color, float radius = 0.f);
 		void DrawRect(Rect rect, Color color, float thickness = 1.f, float radius = 0.f);
+		void DrawLine(Vec2 start, Vec2 end, Color color, float thickness = 1.f);
+		void FillCircle(Vec2 center, float radius, Color color);
+		void DrawCircle(Vec2 center, float radius, Color color, float thickness = 1.f);
 
 		void DrawTextBox(std::wstring_view text, Rect rect, Color color, float fontSize = 14.f, TextAlign align = TextAlign::Left, TextWrap wrap = TextWrap::NoWrap);
 		Size MeasureText(std::wstring_view text, float fontSize = 14.f);

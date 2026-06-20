@@ -8,9 +8,32 @@ namespace tinyui {
 		m_hoveredId = WidgetId::Invalid();
 	}
 
+	void UIContext::BeginFrame(Renderer& renderer, double timeSeconds) {
+		m_renderer = &renderer;
+		m_hoveredId = WidgetId::Invalid();
+		if (!m_hasTime) {
+			m_deltaTimeSeconds = 0.;
+			m_hasTime = true;
+		} else {
+			m_deltaTimeSeconds = timeSeconds - m_timeSeconds;
+			if (m_deltaTimeSeconds < 0.)
+				m_deltaTimeSeconds = 0.;
+		}
+
+		m_timeSeconds = timeSeconds;
+	}
+
 	void UIContext::EndFrame() {
 		m_input.ResetFrameState();
 		m_renderer = nullptr;
+	}
+
+	double UIContext::GetTimeSeconds() const {
+		return m_timeSeconds;
+	}
+
+	double UIContext::GetDeltaTimeSeconds() const {
+		return m_deltaTimeSeconds;
 	}
 
 	Renderer& UIContext::GetRenderer() {

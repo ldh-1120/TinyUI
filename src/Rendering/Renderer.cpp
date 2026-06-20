@@ -92,6 +92,46 @@ namespace tinyui {
 		}
 	}
 
+	void Renderer::DrawLine(Vec2 start, Vec2 end, Color color, float thickness) {
+		if (!m_renderTarget)
+			return;
+
+		Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
+		HRESULT hr = m_renderTarget->CreateSolidColorBrush(ToD2DColor(color), brush.GetAddressOf());
+		if (FAILED(hr))
+			return;
+
+		D2D1_POINT_2F startPoint { start.x, start.y };
+		D2D1_POINT_2F endPoint { end.x, end.y };
+		m_renderTarget->DrawLine(startPoint, endPoint, brush.Get(), thickness);
+	}
+
+	void Renderer::FillCircle(Vec2 center, float radius, Color color) {
+		if (!m_renderTarget)
+			return;
+
+		Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
+		HRESULT hr = m_renderTarget->CreateSolidColorBrush(ToD2DColor(color), brush.GetAddressOf());
+		if (FAILED(hr))
+			return;
+
+		D2D1_ELLIPSE ellipse { { center.x, center.y }, radius, radius };
+		m_renderTarget->FillEllipse(ellipse, brush.Get());
+	}
+
+	void Renderer::DrawCircle(Vec2 center, float radius, Color color, float thickness) {
+		if (!m_renderTarget)
+			return;
+
+		Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
+		HRESULT hr = m_renderTarget->CreateSolidColorBrush(ToD2DColor(color), brush.GetAddressOf());
+		if (FAILED(hr))
+			return;
+
+		D2D1_ELLIPSE ellipse { { center.x, center.y }, radius, radius };
+		m_renderTarget->DrawEllipse(ellipse, brush.Get(), thickness);
+	}
+
 	void Renderer::DrawTextBox(std::wstring_view text, Rect rect, Color color, float fontSize, TextAlign align, TextWrap wrap) {
 		if (!m_renderTarget || !m_dwriteFactory || text.empty())
 			return;
@@ -164,6 +204,13 @@ namespace tinyui {
 		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), 100000.f, 100000.f, textLayout.GetAddressOf());
 		if (FAILED(hr))
 			return 0;
+
+		DWRITE_TEXT_METRICS textMetrics { };
+		hr = textLayout->GetMetrics(&textMetrics);
+		if (SUCCEEDED(hr)) {
+			if (x >= textMetrics.widthIncludingTrailingWhitespace)
+				return text.size();
+		}
 
 		BOOL isTrailingHit = FALSE;
 		BOOL isInside = FALSE;

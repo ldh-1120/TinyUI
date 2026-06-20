@@ -58,6 +58,39 @@ namespace tinyui {
 		Color selection { };
 	};
 
+	struct CheckboxTheme {
+		Color boxBackground { };
+		Color boxHovered { };
+		Color boxChecked { };
+
+		Color border { };
+		Color checkmark { };
+
+		Color text { };
+	};
+
+	struct ToggleTheme {
+		Color trackOff { };
+		Color trackOffHovered { };
+
+		Color trackOn { };
+		Color trackOnHovered { };
+
+		Color knob { };
+		Color border { };
+
+		Color text { };
+	};
+
+	struct ScrollPanelTheme {
+		Color background { };
+		Color border { };
+
+		Color scrollbarTrack { };
+		Color scrollbarThumb { };
+		Color scrollbarThumbHovered { };
+	};
+
 	struct Theme {
 		std::wstring name = L"Unnamed Theme";
 
@@ -74,5 +107,8 @@ namespace tinyui {
 		ButtonTheme button { };
 		SliderTheme slider { };
 		TextBoxTheme textBox { };
+		CheckboxTheme checkbox { };
+		ToggleTheme toggle { };
+		ScrollPanelTheme scrollPanel { };
 	};
 }

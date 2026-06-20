@@ -1,14 +1,88 @@
 #include <TinyUI/Widgets/TextBox.h>
 
+#include <TinyUI/Platform/Clipboard.h>
+
+#include <cmath>
+
 namespace tinyui {
-	static float ClampFloat(float value, float minValue, float maxValue) {
-		if (value < minValue)
-			return minValue;
+	enum class TextUnitKind { Whitespace, Word, Symbol };
 
-		if (value > maxValue)
-			return maxValue;
+	static bool IsWhitespace(wchar_t character) {
+		return character == L' ' || character == L'\t' || character == L'\r' || character == L'\n';
+	}
 
-		return value;
+	static bool IsAsciiLetter(wchar_t character) {
+		return (character >= L'a' && character <= L'z') || (character >= L'A' && character <= L'Z');
+	}
+
+	static bool IsAsciiDigit(wchar_t character) {
+		return character >= L'0' && character <= L'9';
+	}
+
+	static TextUnitKind GetTextUnitKind(wchar_t character) {
+		if (IsWhitespace(character))
+			return TextUnitKind::Whitespace;
+
+		if (IsAsciiLetter(character) || IsAsciiDigit(character) || character == L'_')
+			return TextUnitKind::Word;
+
+		return TextUnitKind::Symbol;
+	}
+
+	static std::size_t FindPreviousTextUnit(const std::wstring& value, std::size_t cursorIndex) {
+		if (cursorIndex == 0)
+			return 0;
+
+		std::size_t index = cursorIndex;
+		while (index > 0 && IsWhitespace(value[index - 1]))
+			--index;
+
+		if (index == 0)
+			return 0;
+
+		TextUnitKind kind = GetTextUnitKind(value[index - 1]);
+		while (index > 0) {
+			wchar_t character = value[index - 1];
+
+			if (IsWhitespace(character))
+				break;
+
+			if (GetTextUnitKind(character) != kind)
+				break;
+
+			--index;
+		}
+
+		return index;
+	}
+
+	static std::size_t FindNextTextUnit(const std::wstring& value, std::size_t cursorIndex) {
+		std::size_t index = cursorIndex;
+		const std::size_t length = value.size();
+		while (index < length && IsWhitespace(value[index]))
+			++index;
+
+		if (index >= length)
+			return length;
+
+		TextUnitKind kind = GetTextUnitKind(value[index]);
+		while (index < length) {
+			wchar_t character = value[index];
+
+			if (IsWhitespace(character))
+				break;
+
+			if (GetTextUnitKind(character) != kind)
+				break;
+
+			++index;
+		}
+
+		return index;
+	}
+
+	static bool HasSelection(const tinyui::TextBoxState& state) {
+		return state.selectionStart != state.selectionEnd;
 	}
 
 	static std::size_t MinSize(std::size_t left, std::size_t right) {
@@ -25,16 +99,52 @@ namespace tinyui {
 		return right;
 	}
 
-	static bool HasSelection(const tinyui::TextBoxState& state) {
-		return state.selectionStart != state.selectionEnd;
-	}
-
 	static std::size_t GetSelectionStart(const tinyui::TextBoxState& state) {
 		return MinSize(state.selectionStart, state.selectionEnd);
 	}
 
 	static std::size_t GetSelectionEnd(const tinyui::TextBoxState& state) {
 		return MaxSize(state.selectionStart, state.selectionEnd);
+	}
+
+	static void SanitizeSingleLineText(std::wstring& text) {
+		std::size_t index = 0;
+
+		while (index < text.size()) {
+			wchar_t character = text[index];
+			if (character == L'\r' || character == L'\n' || character == L'\t') {
+				text[index] = L' ';
+				++index;
+				continue;
+			}
+
+			if (character < 32) {
+				text.erase(index, 1);
+				continue;
+			}
+
+			++index;
+		}
+	}
+
+	static std::wstring GetSelectedText(const std::wstring& value, const tinyui::TextBoxState& state) {
+		if (!HasSelection(state))
+			return L"";
+
+		std::size_t selectionStart = GetSelectionStart(state);
+		std::size_t selectionEnd = GetSelectionEnd(state);
+
+		return value.substr(selectionStart, selectionEnd - selectionStart);
+	}
+
+	static float ClampFloat(float value, float minValue, float maxValue) {
+		if (value < minValue)
+			return minValue;
+
+		if (value > maxValue)
+			return maxValue;
+
+		return value;
 	}
 
 	static void ClearSelection(tinyui::TextBoxState& state) {
@@ -54,6 +164,28 @@ namespace tinyui {
 		state.cursorIndex = selectionStart;
 
 		ClearSelection(state);
+	}
+
+	static std::size_t GetTextIndexFromMouse(tinyui::Renderer& renderer, const tinyui::InputState& input, const tinyui::TextBoxState& state, tinyui::Rect textRect, const std::wstring& value, float fontSize) {
+		tinyui::Vec2 mousePosition = input.GetMousePosition();
+
+		float localTextX = mousePosition.x - textRect.x + state.scrollX;
+		return renderer.HitTestTextPosition(value, fontSize, localTextX);
+	}
+
+	static void ResetCursorBlink(tinyui::TextBoxState& state, const tinyui::UIContext& context) {
+		state.cursorBlinkResetTime = context.GetTimeSeconds();
+	}
+
+	static bool ShouldShowCursor(const tinyui::TextBoxState& state, const tinyui::UIContext& context) {
+		const double blinkInterval = 0.5;
+
+		double elapsed = context.GetTimeSeconds() - state.cursorBlinkResetTime;
+		if (elapsed < 0.)
+			return true;
+
+		double phase = std::fmod(elapsed, blinkInterval * 2.);
+		return phase < blinkInterval;
 	}
 
 	TextBoxStyle TextBoxStyle::FromTheme(const Theme& theme) {
@@ -82,26 +214,40 @@ namespace tinyui {
 		result.hovered = input.IsMouseOver(rect);
 		result.focused = context.IsFocused(id);
 
+		bool cursorChanged = false;
+
 		Rect textRect { rect.x + style.paddingX, rect.y, rect.w - style.paddingX * 2.f, rect.h };
 		if (result.hovered)
 			context.SetHoveredId(id);
 
 		if (input.WasMousePressed(MouseButton::Left)) {
-			if (result.hovered) {
+			if (result.hovered && context.CanActive(id)) {
 				context.SetFocusedId(id);
 				context.SetTextInputId(id);
+				context.SetActiveId(id, MouseButton::Left);
 
-				Vec2 mousePosition = input.GetMousePosition();
+				state.cursorIndex = GetTextIndexFromMouse(renderer, input, state, textRect, value, style.fontSize);
+				state.dragAnchorIndex = state.cursorIndex;
+				state.selectionStart = state.cursorIndex;
+				state.selectionEnd = state.cursorIndex;
+				state.mouseSelecting = true;
 
-				float localTextX = mousePosition.x - textRect.x + state.scrollX;
-				state.cursorIndex = renderer.HitTestTextPosition(value, style.fontSize, localTextX);
-
-				ClearSelection(state);
-
+				cursorChanged = true;
 				result.focused = true;
 			} else if (context.IsFocused(id)) {
 				context.ClearFocusedId();
 				result.focused = false;
+			}
+		}
+
+		if (context.IsActive(id) && state.mouseSelecting) {
+			if (input.IsMouseDown(MouseButton::Left)) {
+				state.cursorIndex = GetTextIndexFromMouse(renderer, input, state, textRect, value, style.fontSize);
+				state.selectionStart = state.dragAnchorIndex;
+				state.selectionEnd = state.cursorIndex;
+			} else {
+				state.mouseSelecting = false;
+				context.ClearActiveId();
 			}
 		}
 
@@ -114,11 +260,51 @@ namespace tinyui {
 		if (state.selectionEnd > value.size())
 			state.selectionEnd = value.size();
 
+		if (state.dragAnchorIndex > value.size())
+			state.dragAnchorIndex = value.size();
+
 		if (context.IsTextInputActive(id)) {
 			if (input.WasShortcutPressed(KeyCode::A, true, false, false)) {
 				state.selectionStart = 0;
 				state.selectionEnd = value.size();
 				state.cursorIndex = value.size();
+			}
+
+			if (input.WasShortcutPressed(KeyCode::C, true, false, false)) {
+				if (HasSelection(state)) {
+					std::wstring selectedText = GetSelectedText(value, state);
+
+					SetClipboardText(selectedText);
+				}
+			}
+
+			if (input.WasShortcutPressed(KeyCode::X, true, false, false)) {
+				if (HasSelection(state)) {
+					std::wstring selectedText = GetSelectedText(value, state);
+
+					if (SetClipboardText(selectedText)) {
+						DeleteSelection(value, state);
+						result.changed = true;
+					}
+				}
+			}
+
+			if (input.WasShortcutPressed(KeyCode::V, true, false, false)) {
+				std::wstring clipboardText { };
+				if (GetClipboardText(clipboardText)) {
+					SanitizeSingleLineText(clipboardText);
+					if (!clipboardText.empty()) {
+						if (HasSelection(state))
+							DeleteSelection(value, state);
+
+						value.insert(state.cursorIndex, clipboardText);
+
+						state.cursorIndex += clipboardText.size();
+						ClearSelection(state);
+
+						result.changed = true;
+					}
+				}
 			}
 
 			const std::wstring& textInput = input.GetTextInput();
@@ -131,72 +317,112 @@ namespace tinyui {
 
 				ClearSelection(state);
 
+				cursorChanged = true;
 				result.changed = true;
 			}
 
-			if (input.WasKeyPressed(KeyCode::Backspace)) {
+			if (input.WasKeyPressedOrRepeated(KeyCode::Backspace)) {
 				if (HasSelection(state)) {
 					DeleteSelection(value, state);
 					result.changed = true;
+				} else if (input.IsControlDown()) {
+					if (state.cursorIndex > 0 && !value.empty()) {
+						std::size_t deleteStart = FindPreviousTextUnit(value, state.cursorIndex);
+						if (deleteStart < state.cursorIndex) {
+							value.erase(deleteStart, state.cursorIndex - deleteStart);
+							state.cursorIndex = deleteStart;
+
+							ClearSelection(state);
+
+							cursorChanged = true;
+							result.changed = true;
+						}
+					}
 				} else if (state.cursorIndex > 0 && !value.empty()) {
 					value.erase(state.cursorIndex - 1, 1);
 					--state.cursorIndex;
 
 					ClearSelection(state);
 
+					cursorChanged = true;
 					result.changed = true;
 				}
 			}
 
-			if (input.WasKeyPressed(KeyCode::Delete)) {
+			if (input.WasKeyPressedOrRepeated(KeyCode::Delete)) {
 				if (HasSelection(state)) {
 					DeleteSelection(value, state);
 					result.changed = true;
+				} else if (input.IsControlDown()) {
+					if (state.cursorIndex < value.size()) {
+						std::size_t deleteEnd = FindNextTextUnit(value, state.cursorIndex);
+						if (deleteEnd > state.cursorIndex) {
+							value.erase(deleteEnd, deleteEnd - state.cursorIndex);
+
+							ClearSelection(state);
+
+							cursorChanged = true;
+							result.changed = true;
+						}
+					}
 				} else if (state.cursorIndex < value.size()) {
 					value.erase(state.cursorIndex, 1);
 
 					ClearSelection(state);
 
+					cursorChanged = true;
 					result.changed = true;
 				}
 			}
 
-			if (input.WasKeyPressed(KeyCode::Left)) {
+			if (input.WasKeyPressedOrRepeated(KeyCode::Left)) {
+				std::size_t targetIndex = state.cursorIndex;
+				if (input.IsControlDown())
+					targetIndex = FindPreviousTextUnit(value, state.cursorIndex);
+				else if (state.cursorIndex > 0)
+					targetIndex = state.cursorIndex - 1;
+
 				if (input.IsShiftDown()) {
 					if (!HasSelection(state))
 						state.selectionStart = state.cursorIndex;
 
-					if (state.cursorIndex > 0)
-						--state.cursorIndex;
-
+					state.cursorIndex = targetIndex;
 					state.selectionEnd = state.cursorIndex;
 				} else {
 					if (HasSelection(state))
-						state.cursorIndex = state.selectionStart;
-					else if (state.cursorIndex > 0)
-						--state.cursorIndex;
+						state.cursorIndex = GetSelectionStart(state);
+					else
+						state.cursorIndex = targetIndex;
 
 					ClearSelection(state);
 				}
+
+				cursorChanged = true;
 			}
 
-			if (input.WasKeyPressed(KeyCode::Right)) {
+			if (input.WasKeyPressedOrRepeated(KeyCode::Right)) {
+				std::size_t targetIndex = state.cursorIndex;
+				if (input.IsControlDown())
+					targetIndex = FindNextTextUnit(value, state.cursorIndex);
+				else if (state.cursorIndex < value.size())
+					targetIndex = state.cursorIndex + 1;
+
 				if (input.IsShiftDown()) {
 					if (!HasSelection(state))
 						state.selectionStart = state.cursorIndex;
 
-					if (state.cursorIndex < value.size())
-						++state.cursorIndex;
-
+					state.cursorIndex = targetIndex;
 					state.selectionEnd = state.cursorIndex;
-				} else {
+				} else {	
 					if (HasSelection(state))
-						state.cursorIndex = state.selectionEnd;
-					else if (state.cursorIndex < value.size())
-						++state.cursorIndex;
+						state.cursorIndex = GetSelectionEnd(state);
+					else
+						state.cursorIndex = targetIndex;
 
 					ClearSelection(state);
 				}
+
+				cursorChanged = true;
 			}
 
 			if (input.WasKeyPressed(KeyCode::Home)) {
@@ -210,6 +436,8 @@ namespace tinyui {
 					state.cursorIndex = 0;
 					ClearSelection(state);
 				}
+
+				cursorChanged = true;
 			}
 
 			if (input.WasKeyPressed(KeyCode::End)) {
@@ -223,6 +451,8 @@ namespace tinyui {
 					state.cursorIndex = value.size();
 					ClearSelection(state);
 				}
+
+				cursorChanged = true;
 			}
 
 			if (input.WasKeyPressed(KeyCode::Enter)) {
@@ -242,6 +472,9 @@ namespace tinyui {
 				}
 			}
 		}
+		
+		if (cursorChanged)
+			ResetCursorBlink(state, context);
 
 		Color backgroundColor = style.backgroundColor;
 		Color borderColor = style.borderColor;
@@ -254,9 +487,33 @@ namespace tinyui {
 		renderer.FillRect(rect, backgroundColor, style.radius);
 		renderer.DrawRect(rect, borderColor, style.borderThickness, style.radius);
 
-		Size textSize = renderer.MeasureText(value, style.fontSize);
+		std::wstring displayValue = value;
 
-		std::wstring textBeforeCursor = value.substr(0, state.cursorIndex);
+		bool hasComposition = context.IsTextInputActive(id) && input.HasCompositionText();
+
+		std::size_t displayCursorIndex = state.cursorIndex;
+		std::size_t compositionInsertIndex = state.cursorIndex;
+		std::size_t compositionLength = 0;
+		if (hasComposition) {
+			const std::wstring& compositionText = input.GetCompositionText();
+			if (HasSelection(state)) {
+				std::size_t selectionStart = GetSelectionStart(state);
+				std::size_t selectionEnd = GetSelectionEnd(state);
+
+				displayValue.erase(selectionStart, selectionEnd - selectionStart);
+
+				compositionInsertIndex = selectionStart;
+			}
+
+			displayValue.insert(compositionInsertIndex, compositionText);
+
+			compositionLength = compositionText.size();
+			displayCursorIndex = compositionInsertIndex + compositionLength;
+		}
+
+		Size textSize = renderer.MeasureText(displayValue, style.fontSize);
+
+		std::wstring textBeforeCursor = value.substr(0, displayCursorIndex);
 		Size cursorTextSize = renderer.MeasureText(textBeforeCursor, style.fontSize);
 
 		float visibleTextWidth = textRect.w - 4.f;
@@ -283,7 +540,7 @@ namespace tinyui {
 
 		renderer.PushClip(textRect);
 
-		if (result.focused && HasSelection(state) && !value.empty()) {
+		if (result.focused && !hasComposition && HasSelection(state) && !value.empty()) {
 			std::size_t selectionStart = GetSelectionStart(state);
 			std::size_t selectionEnd = GetSelectionEnd(state);
 
@@ -297,13 +554,24 @@ namespace tinyui {
 			renderer.FillRect(selectionRect, style.selectionColor, 4.f);
 		}
 
-		if (!value.empty()) {
+		if (!displayValue.empty()) {
 			Rect shiftedTextRect { textRect.x - state.scrollX, textRect.y, textSize.width + 32.f, textRect.h };
-			renderer.DrawTextBox(value, shiftedTextRect, style.textColor, style.fontSize, TextAlign::Left, TextWrap::NoWrap);
+			renderer.DrawTextBox(displayValue, shiftedTextRect, style.textColor, style.fontSize, TextAlign::Left, TextWrap::NoWrap);
 		} else if (!options.placeholder.empty())
 			renderer.DrawTextBox(options.placeholder, textRect, style.placeholderColor, style.fontSize, TextAlign::Left, TextWrap::NoWrap);
 
-		if (result.focused) {
+		if (hasComposition && compositionLength > 0) {
+			std::wstring textBeforeComposition = displayValue.substr(0, compositionInsertIndex);
+			std::wstring compositionText = displayValue.substr(compositionInsertIndex, compositionLength);
+			Size beforeCompositionSize = renderer.MeasureText(textBeforeComposition, style.fontSize);
+			Size compositionSize = renderer.MeasureText(compositionText, style.fontSize);
+
+			float underlineX = textRect.x + beforeCompositionSize.width - state.scrollX;
+			Rect underlineRect { underlineX, rect.y + rect.h - 7.f, compositionSize.width, 1.f };
+			renderer.FillRect(underlineRect, style.cursorColor, 0.f);
+		}
+
+		if (result.focused && !HasSelection(state) && ShouldShowCursor(state, context)) {
 			float cursorX = textRect.x + cursorTextSize.width - state.scrollX;
 
 			if (cursorX < textRect.x)

@@ -17,6 +17,11 @@ namespace tinyui {
 
         std::size_t selectionStart = 0;
         std::size_t selectionEnd = 0;
+
+        bool mouseSelecting = false;
+        std::size_t dragAnchorIndex = 0;
+
+        double cursorBlinkResetTime = 0.;
     };
 
 	struct TextBoxStyle {

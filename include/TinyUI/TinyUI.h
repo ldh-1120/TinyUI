@@ -10,10 +10,14 @@
 #include <TinyUI/Theme/ThemeRegistry.h>
 #include <TinyUI/Theme/Catppuccin.h>
 #include <TinyUI/Context/UIContext.h>
+#include <TinyUI/Platform/Clipboard.h>
 #include <TinyUI/Widgets/Button.h>
 #include <TinyUI/Widgets/Panel.h>
 #include <TinyUI/Widgets/Slider.h>
 #include <TinyUI/Widgets/TextBox.h>
+#include <TinyUI/Widgets/Checkbox.h>
+#include <TinyUI/Widgets/Toggle.h>
+#include <TinyUI/Widgets/ScrollPanel.h>
 
 namespace tinyui {
 

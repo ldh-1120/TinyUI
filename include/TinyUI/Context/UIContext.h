@@ -12,7 +12,11 @@ namespace tinyui {
 	class UIContext {
 	public:
 		void BeginFrame(Renderer& renderer);
+		void BeginFrame(Renderer& renderer, double timeSeconds);
 		void EndFrame();
+
+		double GetTimeSeconds() const;
+		double GetDeltaTimeSeconds() const;
 
 		Renderer& GetRenderer();
 		const Renderer& GetRenderer() const;
@@ -67,5 +71,9 @@ namespace tinyui {
 		WidgetId m_textInputId = WidgetId::Invalid();
 
 		MouseButton m_activeMouseButton = MouseButton::Left;
+
+		double m_timeSeconds = 0.;
+		double m_deltaTimeSeconds = 0.;
+		bool m_hasTime = false;
 	};
 }
