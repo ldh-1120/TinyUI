@@ -109,7 +109,7 @@ namespace tinyui {
 	};
 
 	struct TabBarTheme {
-		Color background {};
+		Color background { };
 
 		Color tabNormal { };
 		Color tabHovered { };
@@ -143,5 +143,6 @@ namespace tinyui {
 		ToggleTheme toggle { };
 		ScrollPanelTheme scrollPanel { };
 		DropdownTheme dropdown { };
+		TabBarTheme tabBar { };
 	};
 }

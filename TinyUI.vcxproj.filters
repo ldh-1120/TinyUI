@@ -78,11 +78,11 @@
     <ClInclude Include="include\TinyUI\Widgets\Dropdown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\TabBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\TinyUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Widgets\Button.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -120,6 +120,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Widgets\Dropdown.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\TabBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -172,6 +172,7 @@
     <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
     <ClInclude Include="include\TinyUI\Widgets\ScrollPanel.h" />
     <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
+    <ClInclude Include="include\TinyUI\Widgets\TabBar.h" />
     <ClInclude Include="include\TinyUI\Widgets\TextBox.h" />
     <ClInclude Include="include\TinyUI\Widgets\Toggle.h" />
   </ItemGroup>
@@ -182,12 +183,12 @@
     <ClCompile Include="src\Platform\Clipboard.cpp" />
     <ClCompile Include="src\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
-    <ClCompile Include="src\TinyUI.cpp" />
     <ClCompile Include="src\Widgets\Button.cpp" />
     <ClCompile Include="src\Widgets\Checkbox.cpp" />
     <ClCompile Include="src\Widgets\Panel.cpp" />
     <ClCompile Include="src\Widgets\ScrollPanel.cpp" />
     <ClCompile Include="src\Widgets\Slider.cpp" />
+    <ClCompile Include="src\Widgets\TabBar.cpp" />
     <ClCompile Include="src\Widgets\TextBox.cpp" />
     <ClCompile Include="src\Widgets\Toggle.cpp" />
   </ItemGroup>

@@ -495,6 +495,16 @@ namespace tinyui {
         theme.dropdown.itemSelected = palette.mauve;
         theme.dropdown.itemSelected.a = 0.35f;
 
+        theme.tabBar.background = palette.mantle;
+        theme.tabBar.tabNormal = palette.surface0;
+        theme.tabBar.tabHovered = palette.surface1;
+        theme.tabBar.tabPressed = palette.surface2;
+        theme.tabBar.tabSelected = palette.surface1;
+        theme.tabBar.border = palette.surface2;
+        theme.tabBar.accent = palette.mauve;
+        theme.tabBar.text = palette.subtext1;
+        theme.tabBar.selectedText = palette.text;
+
         return theme;
     }
 

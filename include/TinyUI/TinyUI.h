@@ -19,7 +19,4 @@
 #include <TinyUI/Widgets/Toggle.h>
 #include <TinyUI/Widgets/ScrollPanel.h>
 #include <TinyUI/Widgets/Dropdown.h>
-
-namespace tinyui {
-
-}
+#include <TinyUI/Widgets/TabBar.h>
