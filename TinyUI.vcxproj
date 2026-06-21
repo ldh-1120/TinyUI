@@ -171,6 +171,7 @@
     <ClInclude Include="include\TinyUI\Widgets\Dropdown.h" />
     <ClInclude Include="include\TinyUI\Widgets\Label.h" />
     <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
+    <ClInclude Include="include\TinyUI\Widgets\ProgressBar.h" />
     <ClInclude Include="include\TinyUI\Widgets\ScrollPanel.h" />
     <ClInclude Include="include\TinyUI\Widgets\Separator.h" />
     <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
@@ -190,6 +191,7 @@
     <ClCompile Include="src\Widgets\Checkbox.cpp" />
     <ClCompile Include="src\Widgets\Label.cpp" />
     <ClCompile Include="src\Widgets\Panel.cpp" />
+    <ClCompile Include="src\Widgets\ProgressBar.cpp" />
     <ClCompile Include="src\Widgets\ScrollPanel.cpp" />
     <ClCompile Include="src\Widgets\Separator.cpp" />
     <ClCompile Include="src\Widgets\Slider.cpp" />

@@ -140,6 +140,13 @@ namespace tinyui {
 		Color text { };
 	};
 
+	struct ProgressBarTheme {
+		Color background { };
+		Color fill { };
+		Color border { };
+		Color text { };
+	};
+
 	struct Theme {
 		std::wstring name = L"Unnamed Theme";
 
@@ -164,5 +171,6 @@ namespace tinyui {
 		TooltipTheme tooltip { };
 		LabelTheme label { };
 		SeparatorTheme separator { };
+		ProgressBarTheme progressBar { };
 	};
 }

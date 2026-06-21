@@ -516,6 +516,11 @@ namespace tinyui {
         theme.separator.line = palette.surface2;
         theme.separator.text = palette.subtext1;
 
+        theme.progressBar.background = palette.surface0;
+        theme.progressBar.fill = palette.mauve;
+        theme.progressBar.border = palette.surface2;
+        theme.progressBar.text = palette.text;
+
         return theme;
     }
 
