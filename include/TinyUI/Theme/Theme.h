@@ -147,6 +147,16 @@ namespace tinyui {
 		Color text { };
 	};
 
+	struct ModalTheme {
+		Color overlay { };
+
+		Color background { };
+		Color border { };
+
+		Color titleText { };
+		Color messageText { };
+	};
+
 	struct Theme {
 		std::wstring name = L"Unnamed Theme";
 
@@ -172,5 +182,6 @@ namespace tinyui {
 		LabelTheme label { };
 		SeparatorTheme separator { };
 		ProgressBarTheme progressBar { };
+		ModalTheme modal { };
 	};
 }

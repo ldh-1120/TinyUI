@@ -24,3 +24,4 @@
 #include <TinyUI/Widgets/Label.h>
 #include <TinyUI/Widgets/Separator.h>
 #include <TinyUI/Widgets/ProgressBar.h>
+#include <TinyUI/Widgets/ModalDialog.h>

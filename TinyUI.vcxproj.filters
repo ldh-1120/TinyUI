@@ -93,6 +93,9 @@
     <ClInclude Include="include\TinyUI\Widgets\ProgressBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\ModalDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Widgets\Button.cpp">
@@ -147,6 +150,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Widgets\ProgressBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\ModalDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

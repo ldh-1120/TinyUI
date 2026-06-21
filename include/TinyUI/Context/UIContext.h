@@ -71,6 +71,9 @@ namespace tinyui {
 
 		bool UpdateTooltip(WidgetId id, bool hovered, double delaySeconds);
 
+		void SetViewportSize(Size size);
+		Size GetViewportSize() const;
+
 	private:
 		Renderer* m_renderer = nullptr;
 
@@ -90,6 +93,8 @@ namespace tinyui {
 		bool m_hasTime = false;
 
 		double m_tooltipStartTime = 0.;
+
+		Size m_viewportSize { };
 
 		std::vector<Rect> m_mouseBlockers { };
 		std::vector<std::function<void(Renderer&)>> m_overlayCallbacks { };

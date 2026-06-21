@@ -521,6 +521,13 @@ namespace tinyui {
         theme.progressBar.border = palette.surface2;
         theme.progressBar.text = palette.text;
 
+        theme.modal.overlay = palette.crust;
+        theme.modal.overlay.a = 0.62f;
+        theme.modal.background = palette.mantle;
+        theme.modal.border = palette.surface2;
+        theme.modal.titleText = palette.text;
+        theme.modal.messageText = palette.subtext1;
+
         return theme;
     }
 

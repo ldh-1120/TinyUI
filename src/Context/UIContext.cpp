@@ -198,6 +198,14 @@ namespace tinyui {
 		return m_timeSeconds - m_tooltipStartTime >= delaySeconds;
 	}
 
+	void UIContext::SetViewportSize(Size size) {
+		m_viewportSize = size;
+	}
+
+	Size UIContext::GetViewportSize() const {
+		return m_viewportSize;
+	}
+
 	void UIContext::SetTextInputId(WidgetId id) {
 		m_textInputId = id;
 	}
