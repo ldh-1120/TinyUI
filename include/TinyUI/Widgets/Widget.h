@@ -2,8 +2,10 @@
 
 #include <TinyCore/Core/Types.h>
 #include <TinyUI/Core/WidgetKey.h>
+#include <TinyUI/Events/MouseEvent.h>
 #include <TinyUI/Layout/Layout.h>
 #include <TinyUI/Layout/LayoutStyle.h>
+#include <TinyUI/Rendering/PaintContext.h>
 
 #include <memory>
 #include <utility>
@@ -34,11 +36,16 @@ namespace tinyui {
 		bool IsEnabled() const;
 		void SetEnabled(bool enabled);
 
+		bool IsHovered() const;
+		bool IsFocused() const;
+
 		bool WasVisited() const;
 		void MarkVisited();
 
 		void ClearVisitedRecursive();
 		void RemoveUnvisitedChildren();
+
+		bool ContainsWidget(const Widget* widget) const;
 
 		LayoutStyle& GetLayoutStyle();
 		const LayoutStyle& GetLayoutStyle() const;
@@ -59,6 +66,10 @@ namespace tinyui {
 
 		void ArrangeTree();
 
+		Widget* HitTest(tinycore::Vec2 position);
+
+		void PaintTree(PaintContext& context);
+
 		Widget* FindChild(WidgetKey key);
 		const Widget* FindChild(WidgetKey key) const;
 
@@ -70,11 +81,19 @@ namespace tinyui {
 
 		template<typename WidgetType, typename... Args>
 		WidgetType* GetOrCreateChild(WidgetKey key, Args&&... args) {
-			Widget* existingChild = FindChild(key);
-			if (existingChild) {
+			return GetOrCreateChildAt<WidgetType>(m_children.size(), key, std::forward<Args>(args)...);
+		}
+
+		template<typename WidgetType, typename... Args>
+		WidgetType* GetOrCreateChildAt(std::size_t desiredIndex, WidgetKey key, Args&&... args) {
+			std::size_t existingIndex = FindChildIndex(key);
+			if (existingIndex != InvalidChildIndex) {
+				Widget* existingChild = m_children[existingIndex].get();
 				WidgetType* typedChild = dynamic_cast<WidgetType*>(existingChild);
-				if (typedChild)
+				if (typedChild) {
+					MoveChildToIndex(existingIndex, desiredIndex);
 					return typedChild;
+				}
 
 				RemoveChild(key);
 			}
@@ -83,14 +102,38 @@ namespace tinyui {
 			WidgetType* childPointer = child.get();
 			childPointer->SetKey(key);
 			childPointer->m_parent = this;
+			if (desiredIndex > m_children.size())
+				desiredIndex = m_children.size();
 
-			m_children.push_back(std::move(child));
+			m_children.insert(m_children.begin() + static_cast<std::ptrdiff_t>(desiredIndex), std::move(child));
 
 			return childPointer;
 		}
 
+		static constexpr std::size_t InvalidChildIndex = static_cast<std::size_t>(-1);
+
+		std::size_t FindChildIndex(WidgetKey key) const;
+		void MoveChildToIndex(std::size_t fromIndex, std::size_t toIndex);
+
 	protected:
 		virtual void OnRemoved();
+
+		virtual void OnPaint(PaintContext& context);
+
+		virtual void OnMouseEnter();
+		virtual void OnMouseLeave();
+
+		virtual void OnFocus();
+		virtual void OnBlur();
+
+		virtual void OnMouseDown(MouseEvent& event);
+		virtual void OnMouseUp(MouseEvent& event);
+
+	private:
+		friend class UIManager;
+
+		void SetHoveredInternal(bool hovered);
+		void SetFocusedInternal(bool focused);
 
 	private:
 		WidgetKey m_key = WidgetKey::Invalid();
@@ -101,6 +144,9 @@ namespace tinyui {
 
 		bool m_visible = true;
 		bool m_enabled = true;
+
+		bool m_hovered = false;
+		bool m_focused = false;
 
 		bool m_visited = false;
 

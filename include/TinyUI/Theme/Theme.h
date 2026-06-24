@@ -32,8 +32,15 @@ namespace tinyui {
 		Color normal { };
 		Color hovered { };
 		Color pressed { };
+		Color disabled { };
+
 		Color border { };
 		Color text { };
+		Color disabledText { };
+
+		float cornerRadius = 5.f;
+		float borderThickness = 0.f;
+		float fontSize = 14.f;
 	};
 
 	struct SliderTheme {

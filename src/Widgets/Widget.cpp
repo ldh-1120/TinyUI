@@ -39,6 +39,14 @@ namespace tinyui {
 		m_enabled = enabled;
 	}
 
+	bool Widget::IsHovered() const {
+		return m_hovered;
+	}
+
+	bool Widget::IsFocused() const {
+		return m_focused;
+	}
+
 	bool Widget::WasVisited() const {
 		return m_visited;
 	}
@@ -53,6 +61,32 @@ namespace tinyui {
 
 		for (std::size_t index = 0; index < m_children.size(); ++index)
 			m_children[index]->ArrangeTree();
+	}
+
+	Widget* Widget::HitTest(tinycore::Vec2 position) {
+		if (!m_visible || !m_enabled)
+			return nullptr;
+
+		for (std::size_t index = m_children.size(); index > 0; --index) {
+			Widget* child = m_children[index - 1].get();
+			Widget* hitWidget = child->HitTest(position);
+			if (hitWidget)
+				return hitWidget;
+		}
+
+		if (!m_rect.Contains(position))
+			return nullptr;
+
+		return this;
+	}
+
+	void Widget::PaintTree(PaintContext& context) {
+		if (!m_visible)
+			return;
+
+		OnPaint(context);
+		for (std::size_t index = 0; index < m_children.size(); ++index)
+			m_children[index]->PaintTree(context);
 	}
 
 	Widget* Widget::FindChild(WidgetKey key) {
@@ -111,6 +145,18 @@ namespace tinyui {
 		m_children.erase(removeBegin, m_children.end());
 	}
 
+	bool Widget::ContainsWidget(const Widget* widget) const {
+		if (this == widget)
+			return true;
+
+		for (std::size_t index = 0; index < m_children.size(); ++index) {
+			if (m_children[index]->ContainsWidget(widget))
+				return true;
+		}
+
+		return false;
+	}
+
 	LayoutStyle& Widget::GetLayoutStyle() {
 		return m_layoutStyle;
 	}
@@ -149,5 +195,68 @@ namespace tinyui {
 		return m_children[index].get();
 	}
 
+	void Widget::SetHoveredInternal(bool hovered) {
+		if (m_hovered == hovered)
+			return;
+
+		m_hovered = hovered;
+		if (m_hovered)
+			OnMouseEnter();
+		else
+			OnMouseLeave();
+	}
+
+	void Widget::SetFocusedInternal(bool focused) {
+		if (m_focused = focused)
+			return;
+
+		m_focused = focused;
+		if (m_focused)
+			OnFocus();
+		else
+			OnBlur();
+	}
+
+	std::size_t Widget::FindChildIndex(WidgetKey key) const {
+		for (std::size_t index = 0; index < m_children.size(); ++index) {
+			if (m_children[index]->GetKey() == key)
+				return index;
+		}
+
+		return InvalidChildIndex;
+	}
+
+	void Widget::MoveChildToIndex(std::size_t fromIndex, std::size_t toIndex) {
+		if (fromIndex >= m_children.size())
+			return;
+
+		if (toIndex >= m_children.size())
+			toIndex = m_children.size() - 1;
+
+		if (fromIndex == toIndex)
+			return;
+
+		std::unique_ptr<Widget> child = std::move(m_children[fromIndex]);
+		m_children.erase(m_children.begin() + static_cast<std::ptrdiff_t>(fromIndex));
+		if (toIndex > m_children.size())
+			toIndex = m_children.size();
+
+		m_children.insert(m_children.begin() + static_cast<std::ptrdiff_t>(toIndex), std::move(child));
+	}
+
 	void Widget::OnRemoved() { }
+
+	void Widget::OnPaint(PaintContext& context) { }
+
+	void Widget::OnMouseEnter() { }
+
+	void Widget::OnMouseLeave() { }
+
+	void Widget::OnFocus() { }
+
+	void Widget::OnBlur() { }
+
+	void Widget::OnMouseDown(MouseEvent& event) { }
+
+	void Widget::OnMouseUp(MouseEvent& event) { }
 }

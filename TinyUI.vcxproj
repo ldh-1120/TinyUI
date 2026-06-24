@@ -120,6 +120,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)TinyCore\include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -142,6 +143,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)TinyCore\include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -155,22 +158,29 @@
   <ItemGroup>
     <ClInclude Include="include\TinyUI\Builder\UIBuilder.h" />
     <ClInclude Include="include\TinyUI\Core\WidgetKey.h" />
+    <ClInclude Include="include\TinyUI\Events\MouseEvent.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutStyle.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutTypes.h" />
     <ClInclude Include="include\TinyUI\Layout\StackLayout.h" />
+    <ClInclude Include="include\TinyUI\Rendering\PaintContext.h" />
     <ClInclude Include="include\TinyUI\Rendering\Renderer.h" />
     <ClInclude Include="include\TinyUI\Theme\Catppuccin.h" />
     <ClInclude Include="include\TinyUI\Theme\Theme.h" />
     <ClInclude Include="include\TinyUI\Theme\ThemeRegistry.h" />
     <ClInclude Include="include\TinyUI\TinyUI.h" />
+    <ClInclude Include="include\TinyUI\UIManager.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Button.h" />
     <ClInclude Include="include\TinyUI\Widgets\Widget.h" />
+    <ClInclude Include="src\Widgets\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Builder\UIBuilder.cpp" />
     <ClCompile Include="src\Layout\StackLayout.cpp" />
     <ClCompile Include="src\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
+    <ClCompile Include="src\UIManager.cpp" />
+    <ClCompile Include="src\Widgets\Button.cpp" />
     <ClCompile Include="src\Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>

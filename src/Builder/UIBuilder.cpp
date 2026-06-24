@@ -12,7 +12,11 @@ namespace tinyui {
 		m_root->ClearVisitedRecursive();
 		m_root->MarkVisited();
 
-		m_stack.push_back(m_root.get());
+		UIBuilderStackEntry rootEntry { };
+		rootEntry.widget = m_root.get();
+		rootEntry.nextChildIndex = 0;
+
+		m_stack.push_back(rootEntry);
 
 		m_building = true;
 	}
@@ -58,6 +62,34 @@ namespace tinyui {
 		return widget;
 	}
 
+	ButtonResult UIBuilder::Button(std::wstring_view keyText, std::wstring_view text) {
+		ButtonOptions options { };
+
+		return Button(keyText, text, options);
+	}
+
+	ButtonResult UIBuilder::Button(std::wstring_view keyText, std::wstring_view text, const ButtonOptions& options) {
+		tinyui::Button& button = Begin<tinyui::Button>(keyText);
+
+		button.SetText(text);
+		button.SetOptions(options);
+
+		if (button.GetLayoutStyle().preferredSize.width <= 0.0f)
+			button.GetLayoutStyle().preferredSize.width = 96.0f;
+
+		if (button.GetLayoutStyle().preferredSize.height <= 0.0f)
+			button.GetLayoutStyle().preferredSize.height = 36.0f;
+
+		ButtonResult result { };
+		result.clicked = button.TakeClicked();
+		result.hovered = button.IsHovered();
+		result.down = button.IsDown();
+
+		End();
+
+		return result;
+	}
+
 	void UIBuilder::EndColumn() {
 		End();
 	}
@@ -77,7 +109,21 @@ namespace tinyui {
 		if (m_stack.empty())
 			return m_root.get();
 
-		return m_stack.back();
+		return m_stack.back().widget;
+	}
+
+	std::size_t UIBuilder::GetCurrentChildIndex() const {
+		if (m_stack.empty())
+			return 0;
+
+		return m_stack.back().nextChildIndex;
+	}
+
+	void UIBuilder::AdvanceCurrentChildIndex() {
+		if (m_stack.empty())
+			return;
+
+		++m_stack.back().nextChildIndex;
 	}
 
 	void UIBuilder::EnsureStackLayout(Widget& widget, LayoutDirection direction) {

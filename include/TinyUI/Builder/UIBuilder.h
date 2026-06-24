@@ -3,8 +3,20 @@
 #include <TinyUI/Core/WidgetKey.h>
 #include <TinyUI/Layout/StackLayout.h>
 #include <TinyUI/Widgets/Widget.h>
+#include <TinyUI/Widgets/Button.h>
 
 namespace tinyui {
+	struct UIBuilderStackEntry {
+		Widget* widget = nullptr;
+		std::size_t nextChildIndex = 0;
+	};
+
+	struct ButtonResult {
+		bool clicked = false;
+		bool hovered = false;
+		bool down = false;
+	};
+
 	class UIBuilder {
 	public:
 		UIBuilder();
@@ -26,17 +38,28 @@ namespace tinyui {
 			WidgetKey key = MakeWidgetKey(keyText);
 
 			Widget* parent = GetCurrentParent();
-			WidgetType* widget = parent->GetOrCreateChild<WidgetType>(key, std::forward<Args>(args)...);
+			std::size_t childIndex = GetCurrentChildIndex();
+
+			AdvanceCurrentChildIndex();
+
+			WidgetType* widget = parent->GetOrCreateChildAt<WidgetType>(childIndex, key, std::forward<Args>(args)...);
 
 			widget->MarkVisited();
 
-			m_stack.push_back(widget);
+			UIBuilderStackEntry entry { };
+			entry.widget = widget;
+			entry.nextChildIndex = 0;
+
+			m_stack.push_back(entry);
 
 			return *widget;
 		}
 
 		Widget& BeginColumn(std::wstring_view keyText);
 		Widget& BeginRow(std::wstring_view keyText);
+
+		ButtonResult Button(std::wstring_view keyText, std::wstring_view text);
+		ButtonResult Button(std::wstring_view keyText, std::wstring_view text, const ButtonOptions& options);
 
 		void EndColumn();
 		void EndRow();
@@ -45,12 +68,15 @@ namespace tinyui {
 
 	private:
 		Widget* GetCurrentParent();
+		std::size_t GetCurrentChildIndex() const;
+		void AdvanceCurrentChildIndex();
+
 		void EnsureStackLayout(Widget& widget, LayoutDirection direction);
 
 	private:
 		std::unique_ptr<Widget> m_root { };
 
-		std::vector<Widget*> m_stack { };
+		std::vector<UIBuilderStackEntry> m_stack { };
 
 		bool m_building = false;
 	};
