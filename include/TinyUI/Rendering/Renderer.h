@@ -1,6 +1,6 @@
 #pragma once
 
-#include <TinyUI/Core/Types.h>
+#include <TinyCore/Core/Types.h>
 
 #include <d2d1.h>
 #include <dwrite.h>
@@ -8,6 +8,8 @@
 #include <cstddef>
 
 #include <string_view>
+
+using namespace tinycore;
 
 namespace tinyui {
 	enum class TextAlign { Left, Center, Right };

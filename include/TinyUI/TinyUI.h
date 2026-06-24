@@ -1,27 +1,20 @@
 #pragma once
 
-#include <TinyUI/Core/Types.h>
-#include <TinyUI/Input/MouseButton.h>
-#include <TinyUI/Input/KeyCode.h>
-#include <TinyUI/Input/InputState.h>
+#include <TinyUI/Core/WidgetKey.h>
+
+#include <TinyUI/Builder/UIBuilder.h>
+
 #include <TinyUI/Rendering/Renderer.h>
-#include <TinyUI/Layout/Layout.h>
+
 #include <TinyUI/Theme/Theme.h>
 #include <TinyUI/Theme/ThemeRegistry.h>
 #include <TinyUI/Theme/Catppuccin.h>
-#include <TinyUI/Context/UIContext.h>
-#include <TinyUI/Platform/Clipboard.h>
-#include <TinyUI/Widgets/Button.h>
-#include <TinyUI/Widgets/Panel.h>
-#include <TinyUI/Widgets/Slider.h>
-#include <TinyUI/Widgets/TextBox.h>
-#include <TinyUI/Widgets/Checkbox.h>
-#include <TinyUI/Widgets/Toggle.h>
-#include <TinyUI/Widgets/ScrollPanel.h>
-#include <TinyUI/Widgets/Dropdown.h>
-#include <TinyUI/Widgets/TabBar.h>
-#include <TinyUI/Widgets/Tooltip.h>
-#include <TinyUI/Widgets/Label.h>
-#include <TinyUI/Widgets/Separator.h>
-#include <TinyUI/Widgets/ProgressBar.h>
-#include <TinyUI/Widgets/ModalDialog.h>
+
+#include <TinyUI/Layout/LayoutTypes.h>
+#include <TinyUI/Layout/LayoutStyle.h>
+#include <TinyUI/Layout/Layout.h>
+#include <TinyUI/Layout/StackLayout.h>
+
+#include <TinyUI/Widgets/Widget.h>
+
+#include <TinyUI/Builder/UIBuilder.h>

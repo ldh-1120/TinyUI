@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -119,7 +119,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)TinyCore\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -141,7 +141,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)TinyCore\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -153,54 +153,30 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\TinyUI\Context\UIContext.h" />
-    <ClInclude Include="include\TinyUI\Core\Types.h" />
-    <ClInclude Include="include\TinyUI\Core\WidgetId.h" />
-    <ClInclude Include="include\TinyUI\Input\InputState.h" />
-    <ClInclude Include="include\TinyUI\Input\KeyCode.h" />
-    <ClInclude Include="include\TinyUI\Input\MouseButton.h" />
+    <ClInclude Include="include\TinyUI\Builder\UIBuilder.h" />
+    <ClInclude Include="include\TinyUI\Core\WidgetKey.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
-    <ClInclude Include="include\TinyUI\Platform\Clipboard.h" />
+    <ClInclude Include="include\TinyUI\Layout\LayoutStyle.h" />
+    <ClInclude Include="include\TinyUI\Layout\LayoutTypes.h" />
+    <ClInclude Include="include\TinyUI\Layout\StackLayout.h" />
     <ClInclude Include="include\TinyUI\Rendering\Renderer.h" />
     <ClInclude Include="include\TinyUI\Theme\Catppuccin.h" />
     <ClInclude Include="include\TinyUI\Theme\Theme.h" />
     <ClInclude Include="include\TinyUI\Theme\ThemeRegistry.h" />
     <ClInclude Include="include\TinyUI\TinyUI.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Button.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Checkbox.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Dropdown.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Label.h" />
-    <ClInclude Include="include\TinyUI\Widgets\ModalDialog.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
-    <ClInclude Include="include\TinyUI\Widgets\ProgressBar.h" />
-    <ClInclude Include="include\TinyUI\Widgets\ScrollPanel.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Separator.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
-    <ClInclude Include="include\TinyUI\Widgets\TabBar.h" />
-    <ClInclude Include="include\TinyUI\Widgets\TextBox.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Toggle.h" />
-    <ClInclude Include="include\TinyUI\Widgets\Tooltip.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Widget.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Widgets\Dropdown.cpp" />
-    <ClCompile Include="src\Context\UIContext.cpp" />
-    <ClCompile Include="src\Input\InputState.cpp" />
-    <ClCompile Include="src\Platform\Clipboard.cpp" />
+    <ClCompile Include="src\Builder\UIBuilder.cpp" />
+    <ClCompile Include="src\Layout\StackLayout.cpp" />
     <ClCompile Include="src\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
-    <ClCompile Include="src\Widgets\Button.cpp" />
-    <ClCompile Include="src\Widgets\Checkbox.cpp" />
-    <ClCompile Include="src\Widgets\Label.cpp" />
-    <ClCompile Include="src\Widgets\ModalDialog.cpp" />
-    <ClCompile Include="src\Widgets\Panel.cpp" />
-    <ClCompile Include="src\Widgets\ProgressBar.cpp" />
-    <ClCompile Include="src\Widgets\ScrollPanel.cpp" />
-    <ClCompile Include="src\Widgets\Separator.cpp" />
-    <ClCompile Include="src\Widgets\Slider.cpp" />
-    <ClCompile Include="src\Widgets\TabBar.cpp" />
-    <ClCompile Include="src\Widgets\TextBox.cpp" />
-    <ClCompile Include="src\Widgets\Toggle.cpp" />
-    <ClCompile Include="src\Widgets\Tooltip.cpp" />
+    <ClCompile Include="src\Widgets\Widget.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TinyCore\TinyCore.vcxproj">
+      <Project>{42ed6894-916d-4a8b-9589-b74648946714}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,10 @@
 #pragma once
 
-#include <TinyUI/Core/Types.h>
+#include <TinyCore/Core/Types.h>
 #include <TinyUI/Theme/Theme.h>
 #include <TinyUI/Theme/ThemeRegistry.h>
+
+using namespace tinycore;
 
 namespace tinyui {
     enum class CatppuccinFlavor {

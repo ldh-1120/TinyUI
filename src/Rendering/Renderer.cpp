@@ -1,5 +1,7 @@
 #include <TinyUI/Rendering/Renderer.h>
 
+using namespace tinycore;
+
 namespace tinyui {
 	static D2D1_RECT_F ToD2DRect(Rect rect) {
 		return D2D1_RECT_F { rect.x, rect.y, rect.x + rect.w, rect.y + rect.h };
@@ -20,12 +22,18 @@ namespace tinyui {
 
 	void Renderer::Begin(ID2D1HwndRenderTarget* renderTarget) {
 		m_renderTarget = renderTarget;
+		if (m_renderTarget)
+			m_renderTarget->BeginDraw();
 	}
 
 	void Renderer::End() {
+		if (!m_renderTarget)
+			return;
+
 		while (m_renderTarget && m_clipDepth > 0)
 			PopClip();
 
+		m_renderTarget->EndDraw();
 		m_renderTarget = nullptr;
 	}
 

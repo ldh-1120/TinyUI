@@ -1,8 +1,10 @@
 #pragma once
 
-#include <TinyUI/Core/Types.h>
+#include <TinyCore/Core/Types.h>
 
 #include <string>
+
+using namespace tinycore;
 
 namespace tinyui {
 	struct TextTheme {

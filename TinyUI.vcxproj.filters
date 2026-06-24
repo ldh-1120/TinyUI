@@ -18,27 +18,6 @@
     <ClInclude Include="include\TinyUI\TinyUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Button.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Panel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Layout\Layout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Slider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Core\Types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Input\MouseButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Input\InputState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\TinyUI\Rendering\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,108 +30,42 @@
     <ClInclude Include="include\TinyUI\Theme\ThemeRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Core\WidgetId.h">
+    <ClInclude Include="include\TinyUI\Core\WidgetKey.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Context\UIContext.h">
+    <ClInclude Include="include\TinyUI\Builder\UIBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Input\KeyCode.h">
+    <ClInclude Include="include\TinyUI\Widgets\Widget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\TextBox.h">
+    <ClInclude Include="include\TinyUI\Layout\LayoutTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Platform\Clipboard.h">
+    <ClInclude Include="include\TinyUI\Layout\LayoutStyle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Checkbox.h">
+    <ClInclude Include="include\TinyUI\Layout\Layout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Toggle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\ScrollPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Dropdown.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\TabBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Tooltip.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Label.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\Separator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\ProgressBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TinyUI\Widgets\ModalDialog.h">
+    <ClInclude Include="include\TinyUI\Layout\StackLayout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Widgets\Button.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Panel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Slider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\InputState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Rendering\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Theme\ThemeRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Context\UIContext.cpp">
+    <ClCompile Include="src\Widgets\Widget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Widgets\TextBox.cpp">
+    <ClCompile Include="src\Builder\UIBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Clipboard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Checkbox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Toggle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\ScrollPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Dropdown.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\TabBar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Tooltip.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Label.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\Separator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\ProgressBar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Widgets\ModalDialog.cpp">
+    <ClCompile Include="src\Layout\StackLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

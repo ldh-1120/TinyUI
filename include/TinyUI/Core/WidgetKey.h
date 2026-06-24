@@ -4,29 +4,29 @@
 #include <string_view>
 
 namespace tinyui {
-	using WidgetIdValue = std::uint32_t;
+	using WidgetKeyValue = std::uint32_t;
 
-	struct WidgetId {
-		WidgetIdValue value = 0;
-		
-		constexpr bool IsValid() const {
+	struct WidgetKey {
+		WidgetKeyValue value = 0;
+
+		bool IsValid() const {
 			return value != 0;
 		}
 
-		static constexpr WidgetId Invalid() {
+		static constexpr WidgetKey Invalid() {
 			return { 0 };
 		}
 	};
-	
-	inline constexpr bool operator==(WidgetId left, WidgetId right) noexcept {
+
+	inline constexpr bool operator==(WidgetKey left, WidgetKey right) {
 		return left.value == right.value;
 	}
 
-	inline constexpr bool operator!=(WidgetId left, WidgetId right) noexcept {
+	inline constexpr bool operator!=(WidgetKey left, WidgetKey right) {
 		return left.value != right.value;
 	}
 
-	inline WidgetId MakeWidgetId(std::wstring_view text) {
+	inline WidgetKey MakeWidgetKey(std::wstring_view text) {
 		std::uint32_t hash = 2166136261u;
 		for (wchar_t character : text) {
 			hash ^= static_cast<std::uint32_t>(character);
@@ -35,7 +35,7 @@ namespace tinyui {
 
 		if (hash == 0)
 			hash = 1;
-		
+
 		return { hash };
 	}
 }
