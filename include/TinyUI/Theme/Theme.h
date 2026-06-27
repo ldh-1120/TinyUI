@@ -1,6 +1,7 @@
 #pragma once
 
 #include <TinyCore/Core/Types.h>
+#include <TinyUI/Widgets/Style/ButtonStyle.h>
 
 #include <string>
 
@@ -22,25 +23,48 @@ namespace tinyui {
 
 	struct PanelTheme {
 		Color background { };
-		Color backgroundHovered { };
-		Color header { };
 		Color border { };
 		Color titleText { };
+
+		float cornerRadius = 0.f;
+		float borderThickness = 1.f;
+		float titleFontSize = 14.f;
+		float titleHeight = 36.f;
 	};
 
 	struct ButtonTheme {
-		Color normal { };
-		Color hovered { };
-		Color pressed { };
-		Color disabled { };
+		tinyui::ButtonStyle primary { };
+		tinyui::ButtonStyle secondary { };
+		tinyui::ButtonStyle ghost { };
+		tinyui::ButtonStyle titleBar { };
+		tinyui::ButtonStyle titleBarClose { };
+	};
 
+	struct LabelTheme {
+		Color text { };
+		Color muted { };
+		Color heading { };
+
+		float fontSize = 14.f;
+		float mutedFontSize = 13.f;
+		float headingFontSize = 18.f;
+	};
+
+	struct SeparatorTheme {
+		Color color { };
+	};
+
+	struct TooltipTheme {
+		Color background { };
 		Color border { };
 		Color text { };
-		Color disabledText { };
 
-		float cornerRadius = 5.f;
+		float cornerRadius = 2.f;
 		float borderThickness = 0.f;
-		float fontSize = 14.f;
+		float fontSize = 12.f;
+		float maxWidth = 260.f;
+
+		tinycore::Thickness padding = tinycore::Thickness::Uniform(8.0f);
 	};
 
 	struct SliderTheme {
@@ -130,23 +154,6 @@ namespace tinyui {
 
 		Color text { };
 		Color selectedText { };
-	};
-
-	struct TooltipTheme {
-		Color background { };
-		Color border { };
-		Color text { };
-	};
-
-	struct LabelTheme {
-		Color text { };
-		Color mutedText { };
-		Color headingText { };
-	};
-
-	struct SeparatorTheme {
-		Color line { };
-		Color text { };
 	};
 
 	struct ProgressBarTheme {

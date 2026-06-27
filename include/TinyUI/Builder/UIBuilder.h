@@ -1,9 +1,14 @@
 #pragma once
 
 #include <TinyUI/Core/WidgetKey.h>
+#include <TinyUI/Builder/UIScope.h>
 #include <TinyUI/Layout/StackLayout.h>
 #include <TinyUI/Widgets/Widget.h>
 #include <TinyUI/Widgets/Button.h>
+#include <TinyUI/Widgets/Label.h>
+#include <TinyUI/Widgets/Panel.h>
+#include <TinyUI/Widgets/Spacer.h>
+#include <TinyUI/Widgets/Separator.h>
 
 namespace tinyui {
 	struct UIBuilderStackEntry {
@@ -12,9 +17,15 @@ namespace tinyui {
 	};
 
 	struct ButtonResult {
+		Button* widget = nullptr;
+
 		bool clicked = false;
 		bool hovered = false;
 		bool down = false;
+
+		Button& GetWidget() const {
+			return *widget;
+		}
 	};
 
 	class UIBuilder {
@@ -55,12 +66,46 @@ namespace tinyui {
 			return *widget;
 		}
 
+		[[nodiscard]] UIScope Row(std::wstring_view keyText);
+		[[nodiscard]] UIScope Column(std::wstring_view keyText);
+
+		[[nodiscard]] UIScope PanelRow(std::wstring_view keyText, std::wstring_view title);
+		[[nodiscard]] UIScope PanelColumn(std::wstring_view keyText, std::wstring_view title);
+
+		[[nodiscard]] UIScope PanelRow(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options);
+		[[nodiscard]] UIScope PanelColumn(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options);
+
 		Widget& BeginColumn(std::wstring_view keyText);
 		Widget& BeginRow(std::wstring_view keyText);
+
+		Panel& BeginPanel(std::wstring_view keyText, std::wstring_view title);
+		Panel& BeginPanel(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options);
+
+		Panel& BeginPanelRow(std::wstring_view keyText, std::wstring_view title);
+		Panel& BeginPanelRow(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options);
+
+		Panel& BeginPanelColumn(std::wstring_view keyText, std::wstring_view title);
+		Panel& BeginPanelColumn(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options);
 
 		ButtonResult Button(std::wstring_view keyText, std::wstring_view text);
 		ButtonResult Button(std::wstring_view keyText, std::wstring_view text, const ButtonOptions& options);
 
+		ButtonResult IconButton(std::wstring_view keyText, ButtonIcon icon);
+		ButtonResult IconButton(std::wstring_view keyText, ButtonIcon icon, const ButtonOptions& options);
+
+		tinyui::Label& Label(std::wstring_view keyText, std::wstring_view text);
+		tinyui::Label& Label(std::wstring_view keyText, std::wstring_view text, const LabelOptions& options);
+
+		void Spacer(std::wstring_view keyText);
+		void Spacer(std::wstring_view keyText, float stretch);
+		void Spacer(std::wstring_view keyText, tinycore::Size preferredSize, float stretch);
+
+		void Gap(std::wstring_view keyText, float size);
+
+		tinyui::Separator& Separator(std::wstring_view keyText);
+		tinyui::Separator& Separator(std::wstring_view keyText, const SeparatorOptions& options);
+
+		void EndPanel();
 		void EndColumn();
 		void EndRow();
 

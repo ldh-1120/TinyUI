@@ -1,9 +1,21 @@
+#include "pch.h"
+
 #include <TinyCore/Math/Numeric.h>
 
 #include <TinyUI/Layout/StackLayout.h>
 #include <TinyUI/Widgets/Widget.h>
 
 namespace tinyui {
+	static float AlignOffset(float availableSize, float childSize, tinyui::LayoutAlignment alignment) {
+		if (alignment == tinyui::LayoutAlignment::Center)
+			return (availableSize - childSize) * 0.5f;
+
+		if (alignment == tinyui::LayoutAlignment::End)
+			return availableSize - childSize;
+
+		return 0.f;
+	}
+
 	StackLayout::StackLayout(LayoutDirection direction) : m_direction(direction) { }
 
 	void StackLayout::SetDirection(LayoutDirection direction) {
@@ -40,7 +52,7 @@ namespace tinyui {
 	}
 
 	void StackLayout::ArrangeHorizontal(Widget& parent) {
-		Rect parentRect = parent.GetRect();
+		Rect parentRect = parent.GetContentRect();
 
 		std::size_t visibleChildCount = 0;
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
@@ -101,20 +113,30 @@ namespace tinyui {
 
 			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
 
-			float childHeight = availableHeight - style.margin.top - style.margin.bottom;
-			if (style.preferredSize.height > 0.f)
+			float availableChildHeight = availableHeight - style.margin.top - style.margin.bottom;
+			if (availableChildHeight < 0.0f)
+				availableChildHeight = 0.0f;
+
+			float childHeight = availableChildHeight;
+			if (style.verticalAlignment != LayoutAlignment::Stretch && style.preferredSize.height > 0.0f)
 				childHeight = style.preferredSize.height;
 
 			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
 
-			child->SetRect({ currentX, parentRect.y + m_padding.top + style.margin.top, childWidth, childHeight });
+			float childY = parentRect.y + m_padding.top + style.margin.top;
+			if (style.verticalAlignment != LayoutAlignment::Stretch)
+				childY += AlignOffset(availableChildHeight, childHeight, style.verticalAlignment);
+
+			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
+
+			child->SetRect({ currentX, childY, childWidth, childHeight });
 
 			currentX += childWidth + style.margin.right + m_gap;
 		}
 	}
 
 	void StackLayout::ArrangeVertical(Widget& parent) {
-		tinycore::Rect parentRect = parent.GetRect();
+		tinycore::Rect parentRect = parent.GetContentRect();
 
 		std::size_t visibleChildCount = 0;
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
@@ -164,7 +186,6 @@ namespace tinyui {
 			remainingHeight = 0.0f;
 
 		float currentY = parentRect.y + m_padding.top;
-
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
 			Widget* child = parent.GetChild(index);
 
@@ -181,13 +202,20 @@ namespace tinyui {
 
 			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
 
-			float childWidth = availableWidth - style.margin.left - style.margin.right;
-			if (style.preferredSize.width > 0.0f)
+			float availableChildWidth = availableWidth - style.margin.left - style.margin.right;
+			if (availableChildWidth < 0.f)
+				availableChildWidth = 0.f;
+
+			float childWidth = availableChildWidth;
+			if (style.horizontalAlignment != LayoutAlignment::Stretch && style.preferredSize.width > 0.f)
 				childWidth = style.preferredSize.width;
 
 			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
+			float childX = parentRect.x + m_padding.left + style.margin.left;
+			if (style.horizontalAlignment != LayoutAlignment::Stretch)
+				childX += AlignOffset(availableChildWidth, childWidth, style.horizontalAlignment);
 
-			child->SetRect({ parentRect.x + m_padding.left + style.margin.left, currentY, childWidth, childHeight });
+			child->SetRect({ childX, currentY, childWidth, childHeight });
 
 			currentY += childHeight + style.margin.bottom + m_gap;
 		}

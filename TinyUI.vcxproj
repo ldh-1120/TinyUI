@@ -157,12 +157,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\TinyUI\Builder\UIBuilder.h" />
+    <ClInclude Include="include\TinyUI\Builder\UIScope.h" />
     <ClInclude Include="include\TinyUI\Core\WidgetKey.h" />
     <ClInclude Include="include\TinyUI\Events\MouseEvent.h" />
+    <ClInclude Include="include\TinyUI\Icons\ButtonIcon.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutStyle.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutTypes.h" />
     <ClInclude Include="include\TinyUI\Layout\StackLayout.h" />
+    <ClInclude Include="include\TinyUI\Rendering\IconPainter.h" />
     <ClInclude Include="include\TinyUI\Rendering\PaintContext.h" />
     <ClInclude Include="include\TinyUI\Rendering\Renderer.h" />
     <ClInclude Include="include\TinyUI\Theme\Catppuccin.h" />
@@ -171,16 +174,31 @@
     <ClInclude Include="include\TinyUI\TinyUI.h" />
     <ClInclude Include="include\TinyUI\UIManager.h" />
     <ClInclude Include="include\TinyUI\Widgets\Button.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Label.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Separator.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Spacer.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Style\ButtonStyle.h" />
     <ClInclude Include="include\TinyUI\Widgets\Widget.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Builder\UIScope.cpp" />
+    <ClCompile Include="src\Rendering\IconPainter.cpp" />
+    <ClCompile Include="src\Widgets\Separator.cpp" />
+    <ClCompile Include="src\Widgets\Spacer.cpp" />
     <ClCompile Include="src\Builder\UIBuilder.cpp" />
     <ClCompile Include="src\Layout\StackLayout.cpp" />
     <ClCompile Include="src\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Theme\ThemeRegistry.cpp" />
     <ClCompile Include="src\UIManager.cpp" />
     <ClCompile Include="src\Widgets\Button.cpp" />
+    <ClCompile Include="src\Widgets\Label.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\Panel.cpp" />
     <ClCompile Include="src\Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>

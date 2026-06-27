@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include <TinyUI/Rendering/Renderer.h>
 
 using namespace tinycore;
@@ -186,6 +188,30 @@ namespace tinyui {
 
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
 		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), 100000.f, 100000.f, textLayout.GetAddressOf());
+		if (FAILED(hr))
+			return { };
+
+		DWRITE_TEXT_METRICS metrics { };
+		hr = textLayout->GetMetrics(&metrics);
+		if (FAILED(hr))
+			return { };
+
+		return { metrics.widthIncludingTrailingWhitespace, metrics.height };
+	}
+
+	Size Renderer::MeasureTextWrapped(std::wstring_view text, float fontSize, float maxWidth) {
+		if (!m_dwriteFactory || text.empty())
+			return { };
+
+		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
+		if (FAILED(hr))
+			return { };
+
+		textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
+
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), maxWidth, 100000.f, textLayout.GetAddressOf());
 		if (FAILED(hr))
 			return { };
 

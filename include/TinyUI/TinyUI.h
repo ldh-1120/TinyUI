@@ -5,6 +5,7 @@
 #include <TinyUI/Events/MouseEvent.h>
 
 #include <TinyUI/Builder/UIBuilder.h>
+#include <TinyUI/Builder/UIScope.h>
 
 #include <TinyUI/Rendering/Renderer.h>
 #include <TinyUI/Rendering/PaintContext.h>
@@ -20,5 +21,8 @@
 
 #include <TinyUI/Widgets/Widget.h>
 #include <TinyUI/Widgets/Button.h>
+#include <TinyUI/Widgets/Panel.h>
+#include <TinyUI/Widgets/Spacer.h>
+#include <TinyUI/Widgets/Separator.h>
 
 #include <TinyUI/UIManager.h>

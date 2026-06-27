@@ -30,6 +30,8 @@ namespace tinyui {
 		Rect GetRect() const;
 		void SetRect(Rect rect);
 
+		virtual Rect GetContentRect() const;
+
 		bool IsVisible() const;
 		void SetVisible(bool visible);
 
@@ -41,6 +43,8 @@ namespace tinyui {
 
 		bool WasVisited() const;
 		void MarkVisited();
+
+		bool UpdateTree(float deltaTime);
 
 		void ClearVisitedRecursive();
 		void RemoveUnvisitedChildren();
@@ -115,8 +119,18 @@ namespace tinyui {
 		std::size_t FindChildIndex(WidgetKey key) const;
 		void MoveChildToIndex(std::size_t fromIndex, std::size_t toIndex);
 
+		virtual bool IsMouseInteractive() const;
+
+		void SetTooltip(std::wstring_view tooltip);
+		void ClearTooltip();
+
+		const std::wstring& GetTooltip() const;
+		bool HasTooltip() const;
+
 	protected:
 		virtual void OnRemoved();
+
+		virtual bool OnUpdate(float deltaTime);
 
 		virtual void OnPaint(PaintContext& context);
 
@@ -149,6 +163,8 @@ namespace tinyui {
 		bool m_focused = false;
 
 		bool m_visited = false;
+
+		std::wstring m_tooltip { };
 
 		LayoutStyle m_layoutStyle { };
 		std::unique_ptr<Layout> m_layout { };

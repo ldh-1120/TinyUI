@@ -41,6 +41,7 @@ namespace tinyui {
 
 		void DrawTextBox(std::wstring_view text, Rect rect, Color color, float fontSize = 14.f, TextAlign align = TextAlign::Left, TextWrap wrap = TextWrap::NoWrap);
 		Size MeasureText(std::wstring_view text, float fontSize = 14.f);
+		Size MeasureTextWrapped(std::wstring_view text, float fontSize, float maxWidth);
 
 		std::size_t HitTestTextPosition(std::wstring_view text, float fontSize, float x);
 

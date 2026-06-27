@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include <TinyUI/Widgets/Widget.h>
 
 namespace tinyui {
@@ -21,6 +23,10 @@ namespace tinyui {
 
 	void Widget::SetRect(Rect rect) {
 		m_rect = rect;
+	}
+
+	Rect Widget::GetContentRect() const {
+		return m_rect;
 	}
 
 	bool Widget::IsVisible() const {
@@ -53,6 +59,20 @@ namespace tinyui {
 
 	void Widget::MarkVisited() {
 		m_visited = true;
+	}
+
+	bool Widget::UpdateTree(float deltaTime) {
+		if (!IsVisible())
+			return false;
+
+		bool needsRedraw = OnUpdate(deltaTime);
+		for (std::size_t index = 0; index < m_children.size(); ++index) {
+			Widget* child = m_children[index].get();
+			if (child && child->UpdateTree(deltaTime))
+				needsRedraw = true;
+		}
+
+		return needsRedraw;
 	}
 
 	void Widget::ArrangeTree() {
@@ -244,7 +264,31 @@ namespace tinyui {
 		m_children.insert(m_children.begin() + static_cast<std::ptrdiff_t>(toIndex), std::move(child));
 	}
 
+	bool Widget::IsMouseInteractive() const {
+		return false;
+	}
+
+	void Widget::SetTooltip(std::wstring_view tooltip) {
+		m_tooltip = tooltip;
+	}
+
+	void Widget::ClearTooltip() {
+		m_tooltip.clear();
+	}
+
+	const std::wstring& Widget::GetTooltip() const {
+		return m_tooltip;
+	}
+
+	bool Widget::HasTooltip() const {
+		return !m_tooltip.empty();
+	}
+
 	void Widget::OnRemoved() { }
+
+	bool Widget::OnUpdate(float deltaTime) {
+		return false;
+	}
 
 	void Widget::OnPaint(PaintContext& context) { }
 

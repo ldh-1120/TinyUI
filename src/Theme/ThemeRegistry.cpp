@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include <TinyUI/Theme/ThemeRegistry.h>
 
 namespace tinyui {

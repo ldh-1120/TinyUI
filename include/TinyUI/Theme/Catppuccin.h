@@ -433,16 +433,62 @@ namespace tinyui {
         theme.window.border = palette.surface0;
 
         theme.panel.background = palette.mantle;
-        theme.panel.backgroundHovered = palette.surface0;
-        theme.panel.header = palette.surface0;
         theme.panel.border = palette.surface1;
         theme.panel.titleText = palette.text;
 
-        theme.button.normal = palette.surface0;
-        theme.button.hovered = palette.surface1;
-        theme.button.pressed = palette.surface2;
-        theme.button.border = palette.surface2;
-        theme.button.text = palette.text;
+#pragma region Button
+
+        theme.button.secondary.normal.background = palette.surface0;
+        theme.button.secondary.normal.border = palette.surface1;
+        theme.button.secondary.normal.text = palette.text;
+
+        theme.button.secondary.hovered.background = palette.surface1;
+        theme.button.secondary.hovered.border = palette.surface2;
+        theme.button.secondary.hovered.text = palette.text;
+
+        theme.button.secondary.pressed.background = palette.surface2;
+        theme.button.secondary.pressed.border = palette.mauve;
+        theme.button.secondary.pressed.text = palette.text;
+
+        theme.button.secondary.disabled.background = palette.mantle;
+        theme.button.secondary.disabled.border = palette.surface0;
+        theme.button.secondary.disabled.text = palette.overlay0;
+
+        theme.button.secondary.cornerRadius = 0.f;
+        theme.button.secondary.borderThickness = 0.f;
+        theme.button.secondary.fontSize = 14.0f;
+
+        theme.button.titleBar.normal.background = Color { 0.0f, 0.0f, 0.0f, 0.0f };
+        theme.button.titleBar.normal.border = Color { 0.0f, 0.0f, 0.0f, 0.0f };
+        theme.button.titleBar.normal.text = palette.subtext1;
+
+        theme.button.titleBar.hovered.background = palette.surface0;
+        theme.button.titleBar.hovered.border = palette.surface0;
+        theme.button.titleBar.hovered.text = palette.text;
+
+        theme.button.titleBar.pressed.background = palette.surface1;
+        theme.button.titleBar.pressed.border = palette.surface1;
+        theme.button.titleBar.pressed.text = palette.text;
+
+        theme.button.titleBar.disabled.background = Color { 0.0f, 0.0f, 0.0f, 0.0f };
+        theme.button.titleBar.disabled.border = Color { 0.0f, 0.0f, 0.0f, 0.0f };
+        theme.button.titleBar.disabled.text = palette.overlay0;
+
+        theme.button.titleBar.cornerRadius = 0.f;
+        theme.button.titleBar.borderThickness = 0.f;
+        theme.button.titleBar.fontSize = 16.0f;
+
+        theme.button.titleBarClose = theme.button.titleBar;
+
+        theme.button.titleBarClose.hovered.background = palette.red;
+        theme.button.titleBarClose.hovered.border = palette.red;
+        theme.button.titleBarClose.hovered.text = palette.base;
+
+        theme.button.titleBarClose.pressed.background = palette.maroon;
+        theme.button.titleBarClose.pressed.border = palette.maroon;
+        theme.button.titleBarClose.pressed.text = palette.base;
+
+#pragma endregion
 
         theme.slider.track = palette.surface0;
         theme.slider.trackHovered = palette.surface1;
@@ -507,16 +553,15 @@ namespace tinyui {
         theme.tabBar.text = palette.subtext1;
         theme.tabBar.selectedText = palette.text;
 
-        theme.tooltip.background = palette.surface0;
-        theme.tooltip.border = palette.surface2;
+        theme.tooltip.background = palette.mantle;
+        theme.tooltip.border = palette.surface1;
         theme.tooltip.text = palette.text;
 
         theme.label.text = palette.text;
-        theme.label.mutedText = palette.subtext1;
-        theme.label.headingText = palette.text;
+        theme.label.muted = palette.subtext1;
+        theme.label.heading = palette.text;
 
-        theme.separator.line = palette.surface2;
-        theme.separator.text = palette.subtext1;
+        theme.separator.color = palette.surface1;
 
         theme.progressBar.background = palette.surface0;
         theme.progressBar.fill = palette.mauve;

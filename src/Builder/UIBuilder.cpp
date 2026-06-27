@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include <TinyUI/Builder/UIBuilder.h>
 
 namespace tinyui {
@@ -62,6 +64,106 @@ namespace tinyui {
 		return widget;
 	}
 
+#pragma region Scope
+
+	UIScope UIBuilder::Row(std::wstring_view keyText) {
+		Widget& widget = BeginRow(keyText);
+
+		return UIScope(this, &widget);
+	}
+
+	UIScope UIBuilder::Column(std::wstring_view keyText) {
+		Widget& widget = BeginColumn(keyText);
+
+		return UIScope(this, &widget);
+	}
+
+	UIScope UIBuilder::PanelRow(std::wstring_view keyText, std::wstring_view title) {
+		Panel& panel = BeginPanelRow(keyText, title);
+
+		return UIScope(this, &panel);
+	}
+
+	UIScope UIBuilder::PanelColumn(std::wstring_view keyText, std::wstring_view title) {
+		Panel& panel = BeginPanelColumn(keyText, title);
+
+		return UIScope(this, &panel);
+	}
+
+	UIScope UIBuilder::PanelRow(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options) {
+		Panel& panel = BeginPanelRow(keyText, title, options);
+
+		return UIScope(this, &panel);
+	}
+
+	UIScope UIBuilder::PanelColumn(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options) {
+		Panel& panel = BeginPanelColumn(keyText, title, options);
+
+		return UIScope(this, &panel);
+	}
+
+#pragma endregion
+
+#pragma region Panel
+
+	Panel& UIBuilder::BeginPanel(std::wstring_view keyText, std::wstring_view title) {
+		PanelOptions options { };
+
+		return BeginPanel(keyText, title, options);
+	}
+
+	Panel& UIBuilder::BeginPanel(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options) {
+		Panel& panel = Begin<Panel>(keyText);
+
+		panel.SetTitle(title);
+		panel.SetOptions(options);
+
+		EnsureStackLayout(panel, LayoutDirection::Vertical);
+
+		StackLayout* layout = panel.GetLayoutAs<StackLayout>();
+		if (layout) {
+			tinycore::Thickness padding = options.useCustomContentPadding ? options.contentPadding : (options.showTitle ? tinycore::Thickness { 12.f, 0.f, 12.f, 12.f } : tinycore::Thickness::Uniform(16.0f));
+			layout->SetPadding(padding);
+			layout->SetGap(12.0f);
+		}
+
+		return panel;
+	}
+
+	Panel& UIBuilder::BeginPanelRow(std::wstring_view keyText, std::wstring_view title) {
+		PanelOptions options { };
+
+		return BeginPanelRow(keyText, title, options);
+	}
+
+	Panel& UIBuilder::BeginPanelRow(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options) {
+		Panel& panel = BeginPanel(keyText, title, options);
+
+		StackLayout* layout = panel.GetLayoutAs<StackLayout>();
+		if (layout)
+			layout->SetDirection(LayoutDirection::Horizontal);
+
+		return panel;
+	}
+
+	Panel& UIBuilder::BeginPanelColumn(std::wstring_view keyText, std::wstring_view title) {
+		PanelOptions options { };
+
+		return BeginPanelColumn(keyText, title, options);
+	}
+
+	Panel& UIBuilder::BeginPanelColumn(std::wstring_view keyText, std::wstring_view title, const PanelOptions& options) {
+		Panel& panel = BeginPanel(keyText, title, options);
+
+		StackLayout* layout = panel.GetLayoutAs<StackLayout>();
+		if (layout)
+			layout->SetDirection(LayoutDirection::Vertical);
+
+		return panel;
+	}
+
+#pragma endregion
+
 	ButtonResult UIBuilder::Button(std::wstring_view keyText, std::wstring_view text) {
 		ButtonOptions options { };
 
@@ -72,22 +174,144 @@ namespace tinyui {
 		tinyui::Button& button = Begin<tinyui::Button>(keyText);
 
 		button.SetText(text);
+		button.SetIcon(ButtonIcon::None);
 		button.SetOptions(options);
-
-		if (button.GetLayoutStyle().preferredSize.width <= 0.0f)
-			button.GetLayoutStyle().preferredSize.width = 96.0f;
-
-		if (button.GetLayoutStyle().preferredSize.height <= 0.0f)
-			button.GetLayoutStyle().preferredSize.height = 36.0f;
 
 		ButtonResult result { };
 		result.clicked = button.TakeClicked();
 		result.hovered = button.IsHovered();
 		result.down = button.IsDown();
+		result.widget = &button;
 
 		End();
 
 		return result;
+	}
+
+	ButtonResult UIBuilder::IconButton(std::wstring_view keyText, ButtonIcon icon) {
+		ButtonOptions options { };
+
+		return IconButton(keyText, icon, options);
+	}
+
+	ButtonResult UIBuilder::IconButton(std::wstring_view keyText, ButtonIcon icon, const ButtonOptions& options) {
+		tinyui::Button& button = Begin<tinyui::Button>(keyText);
+
+		button.SetText(L"");
+		button.SetIcon(icon);
+		button.SetOptions(options);
+
+		ButtonResult result { };
+		result.clicked = button.TakeClicked();
+		result.hovered = button.IsHovered();
+		result.down = button.IsDown();
+		result.widget = &button;
+
+		End();
+
+		return result;
+	}
+
+	tinyui::Label& UIBuilder::Label(std::wstring_view keyText, std::wstring_view text) {
+		LabelOptions options { };
+
+		return Label(keyText, text, options);
+	}
+
+	tinyui::Label& UIBuilder::Label(std::wstring_view keyText, std::wstring_view text, const LabelOptions& options) {
+		tinyui::Label& label = Begin<tinyui::Label>(keyText);
+
+		label.SetText(text);
+		label.SetOptions(options);
+
+		if (label.GetLayoutStyle().preferredSize.height <= 0.0f) {
+			if (options.variant == LabelVariant::Heading)
+				label.GetLayoutStyle().preferredSize.height = 30.0f;
+			else
+				label.GetLayoutStyle().preferredSize.height = 24.0f;
+		}
+
+		End();
+
+		return label;
+	}
+
+	void UIBuilder::Spacer(std::wstring_view keyText) {
+		Spacer(keyText, 1.0f);
+	}
+
+	void UIBuilder::Spacer(std::wstring_view keyText, float stretch) {
+		tinyui::Spacer& spacer = Begin<tinyui::Spacer>(keyText);
+
+		spacer.SetPreferredSize({ 0.0f, 0.0f });
+		spacer.SetStretch(stretch);
+
+		End();
+	}
+
+	void UIBuilder::Spacer(std::wstring_view keyText, tinycore::Size preferredSize, float stretch) {
+		tinyui::Spacer& spacer = Begin<tinyui::Spacer>(keyText);
+
+		spacer.SetPreferredSize(preferredSize);
+		spacer.SetStretch(stretch);
+
+		End();
+	}
+
+	void UIBuilder::Gap(std::wstring_view keyText, float size) {
+		Widget& parent = Current();
+
+		StackLayout* layout = parent.GetLayoutAs<StackLayout>();
+
+		if (layout && layout->GetDirection() == LayoutDirection::Horizontal) {
+			Spacer(keyText, { size, 0.0f }, 0.0f);
+			return;
+		}
+
+		Spacer(keyText, { 0.0f, size }, 0.0f);
+	}
+
+	tinyui::Separator& UIBuilder::Separator(std::wstring_view keyText) {
+		SeparatorOptions options { };
+
+		return Separator(keyText, options);
+	}
+
+	tinyui::Separator& UIBuilder::Separator(std::wstring_view keyText, const SeparatorOptions& options) {
+		Widget& parent = Current();
+
+		LayoutDirection parentDirection = LayoutDirection::Vertical;
+
+		StackLayout* parentLayout = parent.GetLayoutAs<StackLayout>();
+		if (parentLayout)
+			parentDirection = parentLayout->GetDirection();
+
+		tinyui::Separator& separator = Begin<tinyui::Separator>(keyText);
+
+		separator.SetOptions(options);
+
+		float thickness = options.thickness > 0.0f ? options.thickness : 1.0f;
+		if (parentDirection == LayoutDirection::Horizontal) {
+			separator.SetDirection(SeparatorDirection::Vertical);
+
+			separator.GetLayoutStyle().preferredSize = { thickness, 0.0f };
+			separator.GetLayoutStyle().horizontalAlignment = LayoutAlignment::Center;
+			separator.GetLayoutStyle().verticalAlignment = LayoutAlignment::Stretch;
+		} else {
+			separator.SetDirection(SeparatorDirection::Horizontal);
+
+			separator.GetLayoutStyle().preferredSize = { 0.0f, thickness };
+			separator.GetLayoutStyle().horizontalAlignment = LayoutAlignment::Stretch;
+			separator.GetLayoutStyle().verticalAlignment = LayoutAlignment::Center;
+		}
+
+		End();
+
+		return separator;
+	}
+
+	void UIBuilder::EndPanel() {
+		End();
 	}
 
 	void UIBuilder::EndColumn() {
