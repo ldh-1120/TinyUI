@@ -52,6 +52,35 @@ namespace tinyui {
 		return true;
 	}
 
+	bool Button::IsFocusable() const {
+		return true;
+	}
+
+	void Button::OnKeyDown(KeyEvent& event) {
+		if (event.key == tinycore::KeyCode::Enter) {
+			m_clicked = true;
+			event.Accept();
+			return;
+		}
+
+		if (event.key == tinycore::KeyCode::Space) {
+			m_down = true;
+			event.Accept();
+			return;
+		}
+	}
+
+	void Button::OnKeyUp(KeyEvent& event) {
+		if (event.key != tinycore::KeyCode::Space)
+			return;
+
+		if (m_down)
+			m_clicked = true;
+
+		m_down = false;
+		event.Accept();
+	}
+
 	void Button::OnPaint(PaintContext& context) {
 		Rect rect = GetRect();
 

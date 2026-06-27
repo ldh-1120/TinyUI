@@ -159,12 +159,14 @@
     <ClInclude Include="include\TinyUI\Builder\UIBuilder.h" />
     <ClInclude Include="include\TinyUI\Builder\UIScope.h" />
     <ClInclude Include="include\TinyUI\Core\WidgetKey.h" />
+    <ClInclude Include="include\TinyUI\Events\KeyEvent.h" />
     <ClInclude Include="include\TinyUI\Events\MouseEvent.h" />
     <ClInclude Include="include\TinyUI\Icons\ButtonIcon.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutStyle.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutTypes.h" />
     <ClInclude Include="include\TinyUI\Layout\StackLayout.h" />
+    <ClInclude Include="include\TinyUI\Rendering\FocusRingPainter.h" />
     <ClInclude Include="include\TinyUI\Rendering\IconPainter.h" />
     <ClInclude Include="include\TinyUI\Rendering\PaintContext.h" />
     <ClInclude Include="include\TinyUI\Rendering\Renderer.h" />
@@ -177,15 +179,19 @@
     <ClInclude Include="include\TinyUI\Widgets\Label.h" />
     <ClInclude Include="include\TinyUI\Widgets\Panel.h" />
     <ClInclude Include="include\TinyUI\Widgets\Separator.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Slider.h" />
     <ClInclude Include="include\TinyUI\Widgets\Spacer.h" />
     <ClInclude Include="include\TinyUI\Widgets\Style\ButtonStyle.h" />
+    <ClInclude Include="include\TinyUI\Widgets\Style\FocusRingStyle.h" />
     <ClInclude Include="include\TinyUI\Widgets\Widget.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Builder\UIScope.cpp" />
+    <ClCompile Include="src\Rendering\FocusRingPainter.cpp" />
     <ClCompile Include="src\Rendering\IconPainter.cpp" />
     <ClCompile Include="src\Widgets\Separator.cpp" />
+    <ClCompile Include="src\Widgets\Slider.cpp" />
     <ClCompile Include="src\Widgets\Spacer.cpp" />
     <ClCompile Include="src\Builder\UIBuilder.cpp" />
     <ClCompile Include="src\Layout\StackLayout.cpp" />

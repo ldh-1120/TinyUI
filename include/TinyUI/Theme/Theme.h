@@ -2,6 +2,7 @@
 
 #include <TinyCore/Core/Types.h>
 #include <TinyUI/Widgets/Style/ButtonStyle.h>
+#include <TinyUI/Widgets/Style/FocusRingStyle.h>
 
 #include <string>
 
@@ -67,14 +68,21 @@ namespace tinyui {
 		tinycore::Thickness padding = tinycore::Thickness::Uniform(8.0f);
 	};
 
+	struct FocusRingTheme {
+		tinyui::FocusRingStyle control { };
+		tinyui::FocusRingStyle danger { };
+		tinyui::FocusRingStyle titleBar { };
+	};
+
 	struct SliderTheme {
 		Color track { };
-		Color trackHovered { };
 		Color fill { };
-		Color handle { };
-		Color border { };
-		Color labelText { };
-		Color valueText { };
+		Color thumb { };
+		Color thumbHovered { };
+		Color thumbPressed { };
+
+		float trackHeight = 4.f;
+		float thumbRadius = 7.f;
 	};
 
 	struct TextBoxTheme {
@@ -199,5 +207,6 @@ namespace tinyui {
 		SeparatorTheme separator { };
 		ProgressBarTheme progressBar { };
 		ModalTheme modal { };
+		FocusRingTheme focusRing { };
 	};
 }

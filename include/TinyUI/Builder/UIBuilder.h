@@ -9,6 +9,7 @@
 #include <TinyUI/Widgets/Panel.h>
 #include <TinyUI/Widgets/Spacer.h>
 #include <TinyUI/Widgets/Separator.h>
+#include <TinyUI/Widgets/Slider.h>
 
 namespace tinyui {
 	struct UIBuilderStackEntry {
@@ -17,13 +18,22 @@ namespace tinyui {
 	};
 
 	struct ButtonResult {
-		Button* widget = nullptr;
-
 		bool clicked = false;
 		bool hovered = false;
 		bool down = false;
 
+		Button* widget = nullptr;
 		Button& GetWidget() const {
+			return *widget;
+		}
+	};
+
+	struct SliderResult {
+		float value = 0.f;
+		bool changed = false;
+
+		Slider* widget = nullptr;
+		Slider& GetWidget() const {
 			return *widget;
 		}
 	};
@@ -95,6 +105,9 @@ namespace tinyui {
 
 		tinyui::Label& Label(std::wstring_view keyText, std::wstring_view text);
 		tinyui::Label& Label(std::wstring_view keyText, std::wstring_view text, const LabelOptions& options);
+
+		SliderResult Slider(std::wstring_view keyText, float value, float minimum, float maximum);
+		SliderResult Slider(std::wstring_view keyText, float value, float minimum, float maximum, const SliderOptions& options);
 
 		void Spacer(std::wstring_view keyText);
 		void Spacer(std::wstring_view keyText, float stretch);

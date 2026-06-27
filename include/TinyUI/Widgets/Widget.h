@@ -3,9 +3,11 @@
 #include <TinyCore/Core/Types.h>
 #include <TinyUI/Core/WidgetKey.h>
 #include <TinyUI/Events/MouseEvent.h>
+#include <TinyUI/Events/KeyEvent.h>
 #include <TinyUI/Layout/Layout.h>
 #include <TinyUI/Layout/LayoutStyle.h>
 #include <TinyUI/Rendering/PaintContext.h>
+#include <TinyUI/Widgets/Style/FocusRingStyle.h>
 
 #include <memory>
 #include <utility>
@@ -127,6 +129,11 @@ namespace tinyui {
 		const std::wstring& GetTooltip() const;
 		bool HasTooltip() const;
 
+		virtual bool IsFocusable() const;
+
+		virtual FocusRingStyle GetFocusRingStyle(const Theme& theme) const;
+		virtual bool ShouldDrawFocusRing() const;
+
 	protected:
 		virtual void OnRemoved();
 
@@ -142,6 +149,10 @@ namespace tinyui {
 
 		virtual void OnMouseDown(MouseEvent& event);
 		virtual void OnMouseUp(MouseEvent& event);
+		virtual void OnMouseMove(MouseEvent& event);
+
+		virtual void OnKeyDown(KeyEvent& event);
+		virtual void OnKeyUp(KeyEvent& event);
 
 	private:
 		friend class UIManager;

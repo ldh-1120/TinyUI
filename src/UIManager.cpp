@@ -39,6 +39,9 @@ namespace tinyui {
 			m_tooltipVisibleWidget = nullptr;
 			m_tooltipOpacity = 0.0f;
 		}
+
+		if (m_focusedWidget && !root.ContainsWidget(m_focusedWidget))
+			SetFocusedWidget(nullptr, FocusReason::Programmatic);
 	}
 
 	void UIManager::ProcessInput(Widget& root, const tinycore::InputState& input) {
@@ -50,14 +53,18 @@ namespace tinyui {
 		Widget* hitWidget = root.HitTest(mousePosition);
 		SetHoveredWidget(hitWidget);
 		if (input.WasMousePressed(tinycore::MouseButton::Left)) {
-			m_capturedWidget = hitWidget;
-			SetFocusedWidget(hitWidget);
+			SetFocusedWidget(hitWidget, FocusReason::Mouse);
 			if (hitWidget) {
 				MouseEvent event { };
 				event.position = mousePosition;
 				event.button = tinycore::MouseButton::Left;
+
 				hitWidget->OnMouseDown(event);
+				if (event.accepted)
+					m_capturedWidget = hitWidget;
 			}
+			Widget* focusWidget = FindFocusableAncestor(hitWidget);
+			SetFocusedWidget(focusWidget, FocusReason::Mouse);
 		}
 
 		if (input.WasMouseReleased(tinycore::MouseButton::Left)) {
@@ -75,12 +82,22 @@ namespace tinyui {
 
 			m_capturedWidget = nullptr;
 		}
+
+		if (m_capturedWidget) {
+			MouseEvent moveEvent { };
+			moveEvent.position = mousePosition;
+
+			m_capturedWidget->OnMouseMove(moveEvent);
+		}
+
+		ProcessKeyboardInput(root, input);
 	}
 
 	void UIManager::Paint(Widget& root, Renderer& renderer, const Theme& theme) {
 		PaintContext context { renderer, theme };
 		root.PaintTree(context);
 
+		PaintFocusRing(root, renderer, theme);
 		PaintTooltip(root, renderer, theme);
 	}
 
@@ -135,16 +152,152 @@ namespace tinyui {
 			m_hoveredWidget->SetHoveredInternal(true);
 	}
 
-	void UIManager::SetFocusedWidget(Widget* widget) {
-		if (m_focusedWidget == widget)
-			return;
+	void UIManager::SetFocusedWidget(Widget* widget, FocusReason reason) {
+		if (m_focusedWidget == widget) {
+			if (reason == FocusReason::Keyboard)
+				m_showFocusRing = true;
+			else if (reason == FocusReason::Mouse)
+				m_showFocusRing = false;
 
-		if (m_focusedWidget)
+			return;
+		}
+
+		if (m_focusedWidget) {
 			m_focusedWidget->SetFocusedInternal(false);
+			m_focusedWidget->OnBlur();
+		}
 
 		m_focusedWidget = widget;
-		if (m_focusedWidget)
+		if (m_focusedWidget) {
 			m_focusedWidget->SetFocusedInternal(true);
+			m_focusedWidget->OnFocus();
+		}
+
+		if (!m_focusedWidget) {
+			m_showFocusRing = false;
+			return;
+		}
+
+		if (reason == FocusReason::Keyboard)
+			m_showFocusRing = true;
+		else if (reason == FocusReason::Mouse)
+			m_showFocusRing = false;
+	}
+
+	Widget* UIManager::FindFocusableAncestor(Widget* widget) const {
+		Widget* current = widget;
+		while (current) {
+			if (current->IsVisible() && current->IsEnabled() && current->IsFocusable())
+				return current;
+
+			current = current->GetParent();
+		}
+
+		return nullptr;
+	}
+
+	void UIManager::CollectFocusableWidgets(Widget& root, std::vector<Widget*>& widgets) const {
+		if (!root.IsVisible() || !root.IsEnabled())
+			return;
+
+		if (root.IsFocusable())
+			widgets.push_back(&root);
+
+		for (std::size_t index = 0; index < root.GetChildCount(); ++index) {
+			Widget* child = root.GetChild(index);
+			if (child)
+				CollectFocusableWidgets(*child, widgets);
+		}
+	}
+
+	void UIManager::MoveFocus(Widget& root, bool forward) {
+		std::vector<Widget*> widgets { };
+
+		CollectFocusableWidgets(root, widgets);
+		if (widgets.empty()) {
+			SetFocusedWidget(nullptr, FocusReason::Keyboard);
+			return;
+		}
+
+		if (!m_focusedWidget) {
+			if (forward)
+				SetFocusedWidget(widgets.front(), FocusReason::Keyboard);
+			else
+				SetFocusedWidget(widgets.back(), FocusReason::Keyboard);
+
+			return;
+		}
+
+		std::size_t currentIndex = widgets.size();
+		for (std::size_t index = 0; index < widgets.size(); ++index) {
+			if (widgets[index] == m_focusedWidget) {
+				currentIndex = index;
+				break;
+			}
+		}
+
+		if (currentIndex == widgets.size()) {
+			SetFocusedWidget(widgets.front(), FocusReason::Keyboard);
+			return;
+		}
+
+		std::size_t nextIndex = 0;
+		if (forward) {
+			nextIndex = currentIndex + 1;
+			if (nextIndex >= widgets.size())
+				nextIndex = 0;
+		} else {
+			if (currentIndex == 0)
+				nextIndex = widgets.size() - 1;
+			else
+				nextIndex = currentIndex - 1;
+		}
+
+		SetFocusedWidget(widgets[nextIndex], FocusReason::Keyboard);
+	}
+
+	void UIManager::ProcessKeyboardInput(Widget& root, const tinycore::InputState& input) {
+		if (input.WasKeyPressed(tinycore::KeyCode::Tab)) {
+			bool forward = !input.IsKeyDown(tinycore::KeyCode::Shift);
+
+			MoveFocus(root, forward);
+			return;
+		}
+
+		if (!m_focusedWidget)
+			return;
+
+		if (!root.ContainsWidget(m_focusedWidget)) {
+			SetFocusedWidget(nullptr, FocusReason::Keyboard);
+			return;
+		}
+
+		if (input.WasKeyPressed(tinycore::KeyCode::Enter)) {
+			if (m_focusedWidget)
+				m_showFocusRing = true;
+
+			KeyEvent event { };
+			event.key = tinycore::KeyCode::Enter;
+			event.repeated = false;
+
+			m_focusedWidget->OnKeyDown(event);
+		}
+
+		if (input.WasKeyPressed(tinycore::KeyCode::Space)) {
+			KeyEvent event { };
+			event.key = tinycore::KeyCode::Space;
+			event.repeated = false;
+
+			m_focusedWidget->OnKeyDown(event);
+		}
+
+		if (input.WasKeyReleased(tinycore::KeyCode::Space)) {
+			KeyEvent event { };
+			event.key = tinycore::KeyCode::Space;
+			event.repeated = false;
+
+			m_focusedWidget->OnKeyUp(event);
+		}
 	}
 
 	Widget* UIManager::FindTooltipWidget(Widget* widget) const {
@@ -235,5 +388,13 @@ namespace tinyui {
 
 		tinycore::Rect textRect { tooltipRect.x + padding.left, tooltipRect.y + padding.top, tooltipRect.x - padding.left - padding.right, tooltipRect.y - padding.top - padding.bottom };
 		renderer.DrawTextBox(text, textRect, ApplyOpacity(theme.tooltip.text, m_tooltipOpacity), theme.tooltip.fontSize, TextAlign::Left, TextWrap::Wrap);
+	}
+
+	void UIManager::PaintFocusRing(Widget& root, Renderer& renderer, const Theme& theme) {
+		if (!m_focusedWidget || !root.ContainsWidget(m_focusedWidget) || !m_focusedWidget->ShouldDrawFocusRing() || !m_showFocusRing)
+			return;
+
+		FocusRingStyle style = m_focusedWidget->GetFocusRingStyle(theme);
+		FocusRingPainter::Draw(renderer, m_focusedWidget->GetRect(), style);
 	}
 }

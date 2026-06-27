@@ -236,6 +236,28 @@ namespace tinyui {
 		return label;
 	}
 
+	SliderResult UIBuilder::Slider(std::wstring_view keyText, float value, float minimum, float maximum) {
+		SliderOptions options { };
+		return Slider(keyText, value, minimum, maximum, options);
+	}
+
+	SliderResult UIBuilder::Slider(std::wstring_view keyText, float value, float minimum, float maximum, const SliderOptions& options) {
+		tinyui::Slider& slider = Begin<tinyui::Slider>(keyText);
+		slider.SetRange(minimum, maximum);
+		slider.SetOptions(options);
+		if (!slider.IsDragging())
+			slider.SetValue(value);
+
+		SliderResult result { };
+		result.value = slider.GetValue();
+		result.changed = slider.TakeChanged();
+		result.widget = &slider;
+
+		End();
+
+		return result;
+	}
+
 	void UIBuilder::Spacer(std::wstring_view keyText) {
 		Spacer(keyText, 1.0f);
 	}

@@ -3,9 +3,16 @@
 #include <TinyCore/Input/InputState.h>
 
 #include <TinyUI/Rendering/PaintContext.h>
+#include <TinyUI/Rendering/FocusRingPainter.h>
 #include <TinyUI/Widgets/Widget.h>
 
+#include <vector>
+
 namespace tinyui {
+	enum class FocusReason {
+		Mouse, Keyboard, Programmatic
+	};
+
 	class UIManager {
 	public:
 		UIManager() = default;
@@ -33,11 +40,17 @@ namespace tinyui {
 
 	private:
 		void SetHoveredWidget(Widget* widget);
-		void SetFocusedWidget(Widget* widget);
+		void SetFocusedWidget(Widget* widget, FocusReason reason);
+
+		Widget* FindFocusableAncestor(Widget* widget) const;
+		void CollectFocusableWidgets(Widget& widget, std::vector<Widget*>& widgets) const;
+		void MoveFocus(Widget& root, bool forward);
+		void ProcessKeyboardInput(Widget& root, const tinycore::InputState& input);
 
 		Widget* FindTooltipWidget(Widget* widget) const;
 		bool UpdateTooltip(float deltaTime);
 		void PaintTooltip(Widget& root, Renderer& renderer, const Theme& theme);
+		void PaintFocusRing(Widget& root, Renderer& renderer, const Theme& theme);
 
 	private:
 		Widget* m_hoveredWidget = nullptr;
@@ -55,5 +68,7 @@ namespace tinyui {
 		float m_tooltipOpacity = 0.0f;
 		float m_tooltipFadeInSpeed = 12.f;
 		float m_tooltipFadeOutSpeed = 10.f;
+
+		bool m_showFocusRing = false;
 	};
 }

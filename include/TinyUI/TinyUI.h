@@ -24,5 +24,6 @@
 #include <TinyUI/Widgets/Panel.h>
 #include <TinyUI/Widgets/Spacer.h>
 #include <TinyUI/Widgets/Separator.h>
+#include <TinyUI/Widgets/Slider.h>
 
 #include <TinyUI/UIManager.h>

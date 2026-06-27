@@ -46,12 +46,17 @@ namespace tinyui {
 
 		bool IsMouseInteractive() const override;
 
+		bool IsFocusable() const override;
+
 	protected:
+		bool OnUpdate(float deltaTime) override;
+
 		void OnPaint(PaintContext& context) override;
 		void OnMouseDown(MouseEvent& event) override;
 		void OnMouseUp(MouseEvent& event) override;
 
-		bool OnUpdate(float deltaTime) override;
+		void OnKeyDown(KeyEvent& event) override;
+		void OnKeyUp(KeyEvent& event) override;
 
 	private:
 		ButtonStyle ResolveStyle(const Theme& theme) const;

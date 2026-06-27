@@ -491,12 +491,10 @@ namespace tinyui {
 #pragma endregion
 
         theme.slider.track = palette.surface0;
-        theme.slider.trackHovered = palette.surface1;
         theme.slider.fill = palette.mauve;
-        theme.slider.handle = palette.text;
-        theme.slider.border = palette.surface2;
-        theme.slider.labelText = palette.text;
-        theme.slider.valueText = palette.subtext1;
+        theme.slider.thumb = palette.text;
+        theme.slider.thumbHovered = palette.lavender;
+        theme.slider.thumbPressed = palette.rosewater;
 
         theme.textBox.background = palette.surface0;
         theme.textBox.backgroundHovered = palette.surface1;
@@ -574,6 +572,20 @@ namespace tinyui {
         theme.modal.border = palette.surface2;
         theme.modal.titleText = palette.text;
         theme.modal.messageText = palette.subtext1;
+
+        theme.focusRing.control.color = palette.mauve;
+        theme.focusRing.control.thickness = 3.f;
+        theme.focusRing.control.cornerRadius = 4.f;
+        theme.focusRing.control.offset = 3.f;
+        theme.focusRing.control.enabled = true;
+
+        theme.focusRing.danger = theme.focusRing.control;
+        theme.focusRing.danger.color = palette.red;
+
+        theme.focusRing.titleBar = theme.focusRing.control;
+        theme.focusRing.titleBar.color = palette.lavender;
+        theme.focusRing.titleBar.cornerRadius = 8.0f;
+        theme.focusRing.titleBar.offset = 1.0f;
 
         return theme;
     }

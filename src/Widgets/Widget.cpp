@@ -284,6 +284,18 @@ namespace tinyui {
 		return !m_tooltip.empty();
 	}
 
+	bool Widget::IsFocusable() const {
+		return false;
+	}
+
+	FocusRingStyle Widget::GetFocusRingStyle(const Theme& theme) const {
+		return theme.focusRing.control;
+	}
+
+	bool Widget::ShouldDrawFocusRing() const {
+		return IsVisible() && IsEnabled() && IsFocused() && IsFocusable();
+	}
+
 	void Widget::OnRemoved() { }
 
 	bool Widget::OnUpdate(float deltaTime) {
@@ -303,4 +315,10 @@ namespace tinyui {
 	void Widget::OnMouseDown(MouseEvent& event) { }
 
 	void Widget::OnMouseUp(MouseEvent& event) { }
+
+	void Widget::OnMouseMove(MouseEvent& event) { }
+
+	void Widget::OnKeyDown(KeyEvent& event) { }
+
+	void Widget::OnKeyUp(KeyEvent& event) { }
 }
