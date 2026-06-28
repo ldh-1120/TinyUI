@@ -7,6 +7,8 @@
 #include <wrl/client.h>
 #include <cstddef>
 
+#include <vector>
+#include <string>
 #include <string_view>
 
 using namespace tinycore;
@@ -16,7 +18,7 @@ namespace tinyui {
 
 	enum class TextWrap { NoWrap, Wrap };
 
-	class Renderer {
+	class Renderer final {
 	public:
 		Renderer() = default;
 
@@ -40,13 +42,17 @@ namespace tinyui {
 		void DrawCircle(Vec2 center, float radius, Color color, float thickness = 1.f);
 
 		void DrawTextBox(std::wstring_view text, Rect rect, Color color, float fontSize = 14.f, TextAlign align = TextAlign::Left, TextWrap wrap = TextWrap::NoWrap);
-		Size MeasureText(std::wstring_view text, float fontSize = 14.f);
-		Size MeasureTextWrapped(std::wstring_view text, float fontSize, float maxWidth);
+		Size MeasureText(std::wstring_view text, float fontSize = 14.f, TextWrap wrap = TextWrap::NoWrap);
+		Size MeasureText(std::wstring_view text, tinycore::Size maxSize, float fontSize = 14.f, TextWrap wrap = TextWrap::NoWrap);
 
-		std::size_t HitTestTextPosition(std::wstring_view text, float fontSize, float x);
+		std::size_t HitTestTextIndex(std::wstring_view text, tinycore::Size layoutSize, float fontSize, TextWrap wrap, tinycore::Vec2 localPosition);
+		tinycore::Vec2 GetTextCaretPosition(std::wstring_view text, std::size_t textIndex, tinycore::Size layoutSize, float fontSize, TextWrap wrap);
+		std::vector<tinycore::Rect> HitTestTextRange(std::wstring_view text, std::size_t startIndex, std::size_t length, tinycore::Size layoutSize, float fontSize, TextWrap wrap);
 
 	private:
 		ID2D1HwndRenderTarget* m_renderTarget = nullptr;
+
+		std::wstring m_fontFamily = L"Segoe UI";
 
 		Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
 

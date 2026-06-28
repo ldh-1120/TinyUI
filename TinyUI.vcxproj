@@ -165,6 +165,8 @@
     <ClInclude Include="include\TinyUI\Core\WidgetKey.h" />
     <ClInclude Include="include\TinyUI\Events\KeyEvent.h" />
     <ClInclude Include="include\TinyUI\Events\MouseEvent.h" />
+    <ClInclude Include="include\TinyUI\Events\TextCompositionEvent.h" />
+    <ClInclude Include="include\TinyUI\Events\TextInputEvent.h" />
     <ClInclude Include="include\TinyUI\Icons\ButtonIcon.h" />
     <ClInclude Include="include\TinyUI\Layout\Layout.h" />
     <ClInclude Include="include\TinyUI\Layout\LayoutStyle.h" />
@@ -188,6 +190,7 @@
     <ClInclude Include="include\TinyUI\Widgets\Spacer.h" />
     <ClInclude Include="include\TinyUI\Widgets\Style\ButtonStyle.h" />
     <ClInclude Include="include\TinyUI\Widgets\Style\FocusRingStyle.h" />
+    <ClInclude Include="include\TinyUI\Widgets\TextBox.h" />
     <ClInclude Include="include\TinyUI\Widgets\Widget.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
@@ -215,6 +218,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Widgets\Panel.cpp" />
+    <ClCompile Include="src\Widgets\TextBox.cpp" />
     <ClCompile Include="src\Widgets\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>

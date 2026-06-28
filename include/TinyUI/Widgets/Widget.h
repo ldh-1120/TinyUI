@@ -4,6 +4,8 @@
 #include <TinyUI/Core/WidgetKey.h>
 #include <TinyUI/Events/MouseEvent.h>
 #include <TinyUI/Events/KeyEvent.h>
+#include <TinyUI/Events/TextInputEvent.h>
+#include <TinyUI/Events/TextCompositionEvent.h>
 #include <TinyUI/Layout/Layout.h>
 #include <TinyUI/Layout/LayoutStyle.h>
 #include <TinyUI/Rendering/PaintContext.h>
@@ -137,8 +139,13 @@ namespace tinyui {
 		void DispatchKeyDown(KeyEvent& event);
 		void DispatchKeyUp(KeyEvent& event);
 
+		void DispatchTextInput(TextInputEvent& event);
+		void DispatchTextComposition(TextCompositionEvent& event);
+
 		tinycore::Size MeasureTree(tinycore::Size availableSize);
 		tinycore::Size GetDesiredSize() const;
+
+		virtual bool GetImeCandidatePosition(tinycore::Vec2& position) const;
 
 	protected:
 		virtual void OnRemoved();
@@ -159,6 +166,9 @@ namespace tinyui {
 
 		virtual void OnKeyDown(KeyEvent& event);
 		virtual void OnKeyUp(KeyEvent& event);
+
+		virtual void OnTextInput(TextInputEvent& event);
+		virtual void OnTextComposition(TextCompositionEvent& event);
 
 		virtual bool ShouldPaintChildren() const;
 		virtual bool ShouldArrangeChildren() const;

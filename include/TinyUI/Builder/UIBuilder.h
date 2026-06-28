@@ -11,6 +11,7 @@
 #include <TinyUI/Widgets/Separator.h>
 #include <TinyUI/Widgets/Slider.h>
 #include <TinyUI/Widgets/Checkbox.h>
+#include <TinyUI/Widgets/TextBox.h>
 
 namespace tinyui {
 	struct UIBuilderStackEntry {
@@ -122,6 +123,9 @@ namespace tinyui {
 
 		CheckboxResult Checkbox(std::wstring_view keyText, bool checked);
 		CheckboxResult Checkbox(std::wstring_view keyText, bool checked, const CheckboxOptions& options);
+
+		TextBoxResult TextBox(std::wstring_view keyText, std::wstring_view text);
+		TextBoxResult TextBox(std::wstring_view keyText, std::wstring_view text, const TextBoxOptions& options);
 
 		void Spacer(std::wstring_view keyText);
 		void Spacer(std::wstring_view keyText, float stretch);

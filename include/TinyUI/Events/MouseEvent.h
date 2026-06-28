@@ -5,12 +5,14 @@
 
 namespace tinyui {
 	struct Theme;
+	class Renderer;
 
 	struct MouseEvent {
 		tinycore::Vec2 position { };
 		tinycore::MouseButton button = tinycore::MouseButton::Left;
 
 		const Theme* theme = nullptr;
+		Renderer* renderer = nullptr;
 
 		bool accepted = false;
 

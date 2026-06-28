@@ -38,9 +38,11 @@ namespace tinyui {
 		void SetTooltipDelay(float delay);
 		float GetTooltipDelay() const;
 
-		bool HandleMouseMove(Widget& root, tinycore::Vec2 position, const Theme& theme);
-		bool HandleMouseDown(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, const Theme& theme);
-		bool HandleMouseUp(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, const Theme& theme);
+		bool HandleMouseDown(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, Renderer& renderer, const Theme& theme);
+		bool HandleMouseMove(Widget& root, tinycore::Vec2 position, Renderer& renderer, const Theme& theme);
+		bool HandleMouseUp(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, Renderer& renderer, const Theme& theme);
+
+		bool TryGetImeCandidatePosition(tinycore::Vec2& position) const;
 
 	private:
 		void SetHoveredWidget(Widget* widget);
@@ -60,6 +62,9 @@ namespace tinyui {
 
 		void ProcessFocusedKey(const tinycore::InputState& input, tinycore::KeyCode key);
 		KeyEvent MakeKeyEvent(const tinycore::InputState& input, tinycore::KeyCode key, bool repeated) const;
+
+		void ProcessTextInput(Widget& root, const tinycore::InputState& input);
+		void ProcessTextComposition(Widget& root, const tinycore::InputState& input);
 
 	private:
 		Widget* m_hoveredWidget = nullptr;

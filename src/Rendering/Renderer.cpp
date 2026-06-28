@@ -175,92 +175,185 @@ namespace tinyui {
 		m_renderTarget->DrawTextW(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), ToD2DRect(rect), brush.Get());
 	}
 
-	Size Renderer::MeasureText(std::wstring_view text, float fontSize) {
+	Size Renderer::MeasureText(std::wstring_view text, float fontSize, TextWrap wrap) {
 		if (!m_dwriteFactory || text.empty())
-			return { };
+			return { 0.f, 0.f };
+
+		return MeasureText(text, { 100000.f, 100000.f }, fontSize, wrap);
+	}
+
+	Size Renderer::MeasureText(std::wstring_view text, tinycore::Size maxSize, float fontSize, TextWrap wrap) {
+		if (!m_dwriteFactory || text.empty())
+			return { 0.f, 0.f };
+
+		float layoutWidth = maxSize.width;
+		if (layoutWidth < 0.f)
+			layoutWidth = 1.f;
+
+		float layoutHeight = maxSize.height;
+		if (layoutHeight < 0.f)
+			layoutHeight = 1.f;
 
 		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
-		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
-		if (FAILED(hr))
-			return { };
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(m_fontFamily.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"", textFormat.GetAddressOf());
+		if (FAILED(hr) || !textFormat)
+			return { 0.f, 0.f };
 
-		textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+		textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		if (wrap == TextWrap::NoWrap)
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+		else
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
 
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
-		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), 100000.f, 100000.f, textLayout.GetAddressOf());
-		if (FAILED(hr))
-			return { };
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), layoutWidth, layoutHeight, textLayout.GetAddressOf());
+		if (FAILED(hr) || !textLayout)
+			return { 0.f, 0.f };
 
 		DWRITE_TEXT_METRICS metrics { };
 		hr = textLayout->GetMetrics(&metrics);
 		if (FAILED(hr))
-			return { };
+			return { 0.f, 0.f };
 
 		return { metrics.widthIncludingTrailingWhitespace, metrics.height };
 	}
 
-	Size Renderer::MeasureTextWrapped(std::wstring_view text, float fontSize, float maxWidth) {
-		if (!m_dwriteFactory || text.empty())
-			return { };
+	std::size_t Renderer::HitTestTextIndex(std::wstring_view text, tinycore::Size layoutSize, float fontSize, TextWrap wrap, tinycore::Vec2 localPosition) {
+		if (text.empty())
+			return 0;
+
+		if (!m_dwriteFactory)
+			return text.size();
 
 		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
-		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(m_fontFamily.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
 		if (FAILED(hr))
-			return { };
+			return text.size();
 
-		textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
+		textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		if (wrap == TextWrap::NoWrap)
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+		else
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
 
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
-		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), maxWidth, 100000.f, textLayout.GetAddressOf());
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), layoutSize.width, layoutSize.height, textLayout.GetAddressOf());
 		if (FAILED(hr))
-			return { };
-
-		DWRITE_TEXT_METRICS metrics { };
-		hr = textLayout->GetMetrics(&metrics);
-		if (FAILED(hr))
-			return { };
-
-		return { metrics.widthIncludingTrailingWhitespace, metrics.height };
-	}
-
-	std::size_t Renderer::HitTestTextPosition(std::wstring_view text, float fontSize, float x) {
-		if (!m_dwriteFactory || text.empty() || x <= 0.f)
-			return 0;
-
-		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
-		HRESULT hr = m_dwriteFactory->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
-		if (FAILED(hr))
-			return 0;
-
-		textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
-		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
-		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), 100000.f, 100000.f, textLayout.GetAddressOf());
-		if (FAILED(hr))
-			return 0;
-
-		DWRITE_TEXT_METRICS textMetrics { };
-		hr = textLayout->GetMetrics(&textMetrics);
-		if (SUCCEEDED(hr)) {
-			if (x >= textMetrics.widthIncludingTrailingWhitespace)
-				return text.size();
-		}
+			return text.size();
 
 		BOOL isTrailingHit = FALSE;
 		BOOL isInside = FALSE;
 
-		DWRITE_HIT_TEST_METRICS hitMetrics { };
-		hr = textLayout->HitTestPoint(x, fontSize * 0.5f, &isTrailingHit, &isInside, &hitMetrics);
+		DWRITE_HIT_TEST_METRICS metrics { };
+		hr = textLayout->HitTestPoint(localPosition.x, localPosition.y, &isTrailingHit, &isInside, &metrics);
 		if (FAILED(hr))
-			return 0;
+			return text.size();
 
-		std::size_t index = static_cast<std::size_t>(hitMetrics.textPosition);
+		std::size_t index = static_cast<std::size_t>(metrics.textPosition);
 		if (isTrailingHit)
-			index += static_cast<std::size_t>(hitMetrics.length);
+			index += static_cast<std::size_t>(metrics.length);
 
 		if (index > text.size())
 			index = text.size();
 
 		return index;
+	}
+
+	tinycore::Vec2 Renderer::GetTextCaretPosition(std::wstring_view text, std::size_t textIndex, tinycore::Size layoutSize, float fontSize, TextWrap wrap) {
+		tinycore::Vec2 result { };
+		if (!m_dwriteFactory)
+			return result;
+
+		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(m_fontFamily.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
+		if (FAILED(hr))
+			return result;
+
+		textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		if (wrap == TextWrap::NoWrap)
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+		else
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
+
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), layoutSize.width, layoutSize.height, textLayout.GetAddressOf());
+		if (FAILED(hr) || text.empty())
+			return result;
+
+		if (textIndex > text.size())
+			textIndex = text.size();
+
+		UINT32 textPosition = static_cast<UINT32>(textIndex);
+		BOOL trailingHit = FALSE;
+		if (textIndex == text.size()) {
+			textPosition = static_cast<UINT32>(text.size() - 1);
+			trailingHit = TRUE;
+		}
+
+		FLOAT pointX = 0.f;
+		FLOAT pointY = 0.f;
+
+		DWRITE_HIT_TEST_METRICS metrics { };
+		hr = textLayout->HitTestTextPosition(static_cast<UINT32>(textIndex), FALSE, &pointX, &pointY, &metrics);
+		if (FAILED(hr))
+			return result;
+
+		result.x = pointX;
+		result.y = pointY;
+
+		return result;
+	}
+
+	std::vector<tinycore::Rect> Renderer::HitTestTextRange(std::wstring_view text, std::size_t startIndex, std::size_t length, tinycore::Size layoutSize, float fontSize, TextWrap wrap) {
+		std::vector<tinycore::Rect> resultRects { };
+		if (text.empty() || length == 0 || !m_dwriteFactory)
+			return resultRects;
+
+		if (startIndex > text.size())
+			startIndex = text.size();
+
+		if (startIndex + length > text.size())
+			length = text.size() - startIndex;
+
+		if (length == 0)
+			return resultRects;
+
+		Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
+		HRESULT hr = m_dwriteFactory->CreateTextFormat(m_fontFamily.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"ko-kr", textFormat.GetAddressOf());
+		if (FAILED(hr))
+			return resultRects;
+
+		textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		if (wrap == TextWrap::NoWrap)
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+		else
+			textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
+
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+		hr = m_dwriteFactory->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()), textFormat.Get(), layoutSize.width, layoutSize.height, textLayout.GetAddressOf());
+		if (FAILED(hr))
+			return resultRects;
+
+		UINT32 metricsCapacity = static_cast<UINT32>(length + 1);
+		if (metricsCapacity < 1)
+			metricsCapacity = 1;
+
+		std::vector<DWRITE_HIT_TEST_METRICS> metrics(metricsCapacity);
+
+		UINT32 actualMetricsCount = 0;
+		hr = textLayout->HitTestTextRange(static_cast<UINT32>(startIndex), static_cast<UINT32>(length), 0.f, 0.f, metrics.data(), metricsCapacity, &actualMetricsCount);
+		if (FAILED(hr))
+			return resultRects;
+		
+		for (UINT32 index = 0; index < actualMetricsCount; ++index) {
+			tinycore::Rect rect { metrics[index].left, metrics[index].top, metrics[index].width, metrics[index].height };
+			resultRects.push_back(rect);
+		}
+
+		return resultRects;
 	}
 }

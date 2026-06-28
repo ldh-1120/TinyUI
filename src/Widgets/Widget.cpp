@@ -325,6 +325,18 @@ namespace tinyui {
 		return m_desiredSize;
 	}
 
+	bool Widget::GetImeCandidatePosition(tinycore::Vec2& position) const {
+		return false;
+	}
+
+	void Widget::DispatchTextInput(TextInputEvent& event) {
+		OnTextInput(event);
+	}
+
+	void Widget::DispatchTextComposition(TextCompositionEvent& event) {
+		OnTextComposition(event);
+	}
+
 	void Widget::OnRemoved() { }
 
 	bool Widget::OnUpdate(float deltaTime) {
@@ -350,6 +362,10 @@ namespace tinyui {
 	void Widget::OnKeyDown(KeyEvent& event) { }
 
 	void Widget::OnKeyUp(KeyEvent& event) { }
+
+	void Widget::OnTextInput(TextInputEvent& event) { }
+
+	void Widget::OnTextComposition(TextCompositionEvent& event) { }
 	
 	bool Widget::ShouldPaintChildren() const {
 		return true;

@@ -288,6 +288,28 @@ namespace tinyui {
 		return result;
 	}
 
+	TextBoxResult UIBuilder::TextBox(std::wstring_view keyText, std::wstring_view text) {
+		TextBoxOptions options { };
+
+		return TextBox(keyText, text, options);
+	}
+
+	TextBoxResult UIBuilder::TextBox(std::wstring_view keyText, std::wstring_view text, const TextBoxOptions& options) {
+		tinyui::TextBox& textBox = Begin<tinyui::TextBox>(keyText);
+		textBox.SetOptions(options);
+		if (!textBox.HasPendingChange())
+			textBox.SetText(text);
+
+		TextBoxResult result { };
+		result.text = textBox.GetText();
+		result.changed = textBox.TakeChanged();
+		result.widget = &textBox;
+
+		End();
+
+		return result;
+	}
+
 	void UIBuilder::Spacer(std::wstring_view keyText) {
 		Spacer(keyText, 1.0f);
 	}

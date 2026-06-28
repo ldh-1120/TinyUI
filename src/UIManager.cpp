@@ -4,6 +4,16 @@
 #include <TinyUI/UIManager.h>
 
 namespace tinyui {
+	static MouseEvent MakeMouseEvent(tinycore::MouseButton button, tinycore::Vec2 position, Renderer& renderer, const Theme& theme) {
+		MouseEvent event { };
+		event.position = position;
+		event.button = button;
+		event.renderer = &renderer;
+		event.theme = &theme;
+
+		return event;
+	}
+
 	static tinycore::Color ApplyOpacity(tinycore::Color color, float opacity) {
 		opacity = tinycore::Clamp01(opacity);
 
@@ -46,6 +56,8 @@ namespace tinyui {
 
 	void UIManager::ProcessInput(Widget& root, const tinycore::InputState& input) {
 		ProcessKeyboardInput(root, input);
+		ProcessTextInput(root, input);
+		ProcessTextComposition(root, input);
 	}
 
 	void UIManager::Paint(Widget& root, Renderer& renderer, const Theme& theme) {
@@ -237,6 +249,13 @@ namespace tinyui {
 		ProcessFocusedKey(input, tinycore::KeyCode::PageDown);
 		ProcessFocusedKey(input, tinycore::KeyCode::Home);
 		ProcessFocusedKey(input, tinycore::KeyCode::End);
+		ProcessFocusedKey(input, tinycore::KeyCode::Backspace);
+		ProcessFocusedKey(input, tinycore::KeyCode::Delete);
+
+		ProcessFocusedKey(input, tinycore::KeyCode::A);
+		ProcessFocusedKey(input, tinycore::KeyCode::C);
+		ProcessFocusedKey(input, tinycore::KeyCode::X);
+		ProcessFocusedKey(input, tinycore::KeyCode::V);
 	}
 
 	Widget* UIManager::FindTooltipWidget(Widget* widget) const {
@@ -300,7 +319,7 @@ namespace tinyui {
 		if (text.empty())
 			return;
 
-		tinycore::Size textSize = renderer.MeasureTextWrapped(text, theme.tooltip.fontSize, theme.tooltip.maxWidth);
+		tinycore::Size textSize = renderer.MeasureText(text, { theme.tooltip.maxWidth, 100000.f }, theme.tooltip.fontSize, TextWrap::Wrap);
 		tinycore::Thickness padding = theme.tooltip.padding;
 
 		float tooltipWidth = textSize.width + padding.left + padding.right;
@@ -337,30 +356,7 @@ namespace tinyui {
 		FocusRingPainter::Draw(renderer, m_focusedWidget->GetRect(), style);
 	}
 
-	bool UIManager::HandleMouseMove(Widget& root, tinycore::Vec2 position, const Theme& theme) {
-		m_lastMousePosition = position;
-
-		bool needsRedraw = UpdateHoveredWidget(root, position);
-		if (m_capturedWidget) {
-			if (!root.ContainsWidget(m_capturedWidget)) {
-				m_capturedWidget = nullptr;
-				return true;
-			}
-
-			MouseEvent event { };
-			event.position = position;
-			event.button = tinycore::MouseButton::Left;
-			event.theme = &theme;
-
-			m_capturedWidget->OnMouseMove(event);
-			if (event.accepted)
-				needsRedraw = true;
-		}
-
-		return needsRedraw;
-	}
-
-	bool UIManager::HandleMouseDown(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, const Theme& theme) {
+	bool UIManager::HandleMouseDown(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, Renderer& renderer, const Theme& theme) {
 		m_lastMousePosition = position;
 
 		bool needsRedraw = UpdateHoveredWidget(root, position);
@@ -372,11 +368,7 @@ namespace tinyui {
 		if (!hitWidget)
 			return true;
 
-		MouseEvent event { };
-		event.position = position;
-		event.button = button;
-		event.theme = &theme;
-
+		MouseEvent event = MakeMouseEvent(button, position, renderer, theme);
 		hitWidget->OnMouseDown(event);
 		if (event.accepted) {
 			m_capturedWidget = hitWidget;
@@ -386,7 +378,26 @@ namespace tinyui {
 		return needsRedraw;
 	}
 
-	bool UIManager::HandleMouseUp(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, const Theme& theme) {
+	bool UIManager::HandleMouseMove(Widget& root, tinycore::Vec2 position, Renderer& renderer, const Theme& theme) {
+		m_lastMousePosition = position;
+
+		bool needsRedraw = UpdateHoveredWidget(root, position);
+		if (m_capturedWidget) {
+			if (!root.ContainsWidget(m_capturedWidget)) {
+				m_capturedWidget = nullptr;
+				return true;
+			}
+
+			MouseEvent event = MakeMouseEvent(MouseButton::Left, position, renderer, theme);
+			m_capturedWidget->OnMouseMove(event);
+			if (event.accepted)
+				needsRedraw = true;
+		}
+
+		return needsRedraw;
+	}
+
+	bool UIManager::HandleMouseUp(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, Renderer& renderer, const Theme& theme) {
 		m_lastMousePosition = position;
 
 		bool needsRedraw = UpdateHoveredWidget(root, position);
@@ -396,11 +407,7 @@ namespace tinyui {
 			targetWidget = root.HitTest(position);
 
 		if (targetWidget && root.ContainsWidget(targetWidget)) {
-			MouseEvent event { };
-			event.position = position;
-			event.button = button;
-			event.theme = &theme;
-
+			MouseEvent event = MakeMouseEvent(button, position, renderer, theme);
 			targetWidget->OnMouseUp(event);
 			if (event.accepted)
 				needsRedraw = true;
@@ -412,6 +419,13 @@ namespace tinyui {
 		}
 
 		return needsRedraw;
+	}
+
+	bool UIManager::TryGetImeCandidatePosition(tinycore::Vec2& position) const {
+		if (!m_focusedWidget)
+			return false;
+
+		return m_focusedWidget->GetImeCandidatePosition(position);
 	}
 
 	bool UIManager::UpdateHoveredWidget(Widget& root, tinycore::Vec2 position) {
@@ -470,5 +484,38 @@ namespace tinyui {
 		event.altDown = input.IsKeyDown(tinycore::KeyCode::Alt);
 
 		return event;
+	}
+
+	void UIManager::ProcessTextInput(Widget& root, const tinycore::InputState& input) {
+		if (!m_focusedWidget)
+			return;
+
+		if (!root.ContainsWidget(m_focusedWidget)) {
+			SetFocusedWidget(nullptr, FocusReason::Programmatic);
+			return;
+		}
+
+		std::wstring_view text = input.GetTextInput();
+		for (wchar_t character : text) {
+			TextInputEvent event { };
+			event.character = character;
+
+			m_focusedWidget->DispatchTextInput(event);
+		}
+	}
+
+	void UIManager::ProcessTextComposition(Widget& root, const tinycore::InputState& input) {
+		if (!m_focusedWidget)
+			return;
+
+		if (!root.ContainsWidget(m_focusedWidget)) {
+			SetFocusedWidget(nullptr, FocusReason::Programmatic);
+			return;
+		}
+
+		TextCompositionEvent event { };
+		event.text = input.GetCompositionText();
+
+		m_focusedWidget->DispatchTextComposition(event);
 	}
 }

@@ -106,17 +106,25 @@ namespace tinyui {
 	};
 
 	struct TextBoxTheme {
-		Color background { };
-		Color backgroundHovered { };
-		Color backgroundFocused { };
+		tinycore::Color background { };
+		tinycore::Color backgroundHovered { };
+		tinycore::Color backgroundFocused { };
 
-		Color border { };
-		Color borderFocused { };
+		tinycore::Color border { };
+		tinycore::Color borderHovered { };
+		tinycore::Color borderFocused { };
 
-		Color text { };
-		Color placeholder { };
-		Color cursor { };
-		Color selection { };
+		tinycore::Color text { };
+		tinycore::Color placeholder { };
+		tinycore::Color caret { };
+		tinycore::Color selection { };
+		tinycore::Color compositionUnderline { };
+
+		float cornerRadius = 7.0f;
+		float borderThickness = 1.0f;
+		float fontSize = 14.0f;
+
+		tinycore::Thickness padding = tinycore::Thickness::HorizontalVertical(10.0f, 6.0f);
 	};
 
 	struct ToggleTheme {
