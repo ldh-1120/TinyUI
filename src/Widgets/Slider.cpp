@@ -253,10 +253,10 @@ namespace tinyui {
 	}
 
 	float Slider::GetTrackHeight(const Theme& theme) const {
-		if (m_options.thumbRadius >= 0.f)
-			return m_options.thumbRadius;
+		if (m_options.trackHeight >= 0.f)
+			return m_options.trackHeight;
 
-		return theme.slider.thumbRadius;
+		return theme.slider.trackHeight;
 	}
 
 	float Slider::GetThumbRadius(const Theme& theme) const {

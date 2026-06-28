@@ -10,6 +10,7 @@
 #include <TinyUI/Widgets/Spacer.h>
 #include <TinyUI/Widgets/Separator.h>
 #include <TinyUI/Widgets/Slider.h>
+#include <TinyUI/Widgets/Checkbox.h>
 
 namespace tinyui {
 	struct UIBuilderStackEntry {
@@ -34,6 +35,16 @@ namespace tinyui {
 
 		Slider* widget = nullptr;
 		Slider& GetWidget() const {
+			return *widget;
+		}
+	};
+
+	struct CheckboxResult {
+		bool checked = false;
+		bool changed = false;
+
+		Checkbox* widget = nullptr;
+		Checkbox& GetWidget() const {
 			return *widget;
 		}
 	};
@@ -108,6 +119,9 @@ namespace tinyui {
 
 		SliderResult Slider(std::wstring_view keyText, float value, float minimum, float maximum);
 		SliderResult Slider(std::wstring_view keyText, float value, float minimum, float maximum, const SliderOptions& options);
+
+		CheckboxResult Checkbox(std::wstring_view keyText, bool checked);
+		CheckboxResult Checkbox(std::wstring_view keyText, bool checked, const CheckboxOptions& options);
 
 		void Spacer(std::wstring_view keyText);
 		void Spacer(std::wstring_view keyText, float stretch);

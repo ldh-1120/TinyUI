@@ -265,6 +265,29 @@ namespace tinyui {
 		return result;
 	}
 
+	CheckboxResult UIBuilder::Checkbox(std::wstring_view keyText, bool checked) {
+		CheckboxOptions options { };
+
+		return Checkbox(keyText, checked, options);
+	}
+
+	CheckboxResult UIBuilder::Checkbox(std::wstring_view keyText, bool checked, const CheckboxOptions& options) {
+		tinyui::Checkbox& checkbox = Begin<tinyui::Checkbox>(keyText);
+
+		checkbox.SetOptions(options);
+		if (!checkbox.HasPendingChange())
+			checkbox.SetChecked(checked);
+
+		CheckboxResult result { };
+		result.checked = checkbox.IsChecked();
+		result.changed = checkbox.TakeChanged();
+		result.widget = &checkbox;
+
+		End();
+
+		return result;
+	}
+
 	void UIBuilder::Spacer(std::wstring_view keyText) {
 		Spacer(keyText, 1.0f);
 	}

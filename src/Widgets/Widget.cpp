@@ -232,7 +232,7 @@ namespace tinyui {
 	}
 
 	void Widget::SetFocusedInternal(bool focused) {
-		if (m_focused = focused)
+		if (m_focused == focused)
 			return;
 
 		m_focused = focused;

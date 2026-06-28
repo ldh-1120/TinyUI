@@ -111,6 +111,12 @@
     <ClInclude Include="include\TinyUI\Controls\PropertyRow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TinyUI\Widgets\Checkbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TinyUI\Controls\PropertyCheckbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Rendering\Renderer.cpp">
@@ -168,6 +174,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Controls\PropertyRow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Widgets\Checkbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Controls\PropertyCheckbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

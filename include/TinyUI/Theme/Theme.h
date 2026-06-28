@@ -88,6 +88,23 @@ namespace tinyui {
 		float thumbPressedScale = 1.28f;
 	};
 
+	struct CheckboxTheme {
+		tinycore::Color background { };
+		tinycore::Color backgroundHovered { };
+		tinycore::Color backgroundPressed { };
+		tinycore::Color backgroundChecked { };
+
+		tinycore::Color border { };
+		tinycore::Color borderHovered { };
+
+		tinycore::Color check { };
+
+		float boxSize = 18.f;
+		float cornerRadius = 5.f;
+		float borderThickness = 1.f;
+		float checkThickness = 2.f;
+	};
+
 	struct TextBoxTheme {
 		Color background { };
 		Color backgroundHovered { };
@@ -100,17 +117,6 @@ namespace tinyui {
 		Color placeholder { };
 		Color cursor { };
 		Color selection { };
-	};
-
-	struct CheckboxTheme {
-		Color boxBackground { };
-		Color boxHovered { };
-		Color boxChecked { };
-
-		Color border { };
-		Color checkmark { };
-
-		Color text { };
 	};
 
 	struct ToggleTheme {

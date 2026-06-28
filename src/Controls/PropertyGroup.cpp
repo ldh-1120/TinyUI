@@ -10,8 +10,7 @@
 
 namespace tinyui {
 	static std::wstring MakeGroupKey(std::wstring_view keyText) {
-		std::wstring result { };
-
+		std::wstring result(keyText);
 		result += L".group";
 
 		return result;

@@ -496,6 +496,14 @@ namespace tinyui {
         theme.slider.thumbHovered = palette.lavender;
         theme.slider.thumbPressed = palette.rosewater;
 
+        theme.checkbox.background = palette.surface0;
+        theme.checkbox.backgroundHovered = palette.surface1;
+        theme.checkbox.backgroundPressed = palette.surface2;
+        theme.checkbox.backgroundChecked = palette.mauve;
+        theme.checkbox.border = palette.surface2;
+        theme.checkbox.borderHovered = palette.lavender;
+        theme.checkbox.check = palette.base;
+
         theme.textBox.background = palette.surface0;
         theme.textBox.backgroundHovered = palette.surface1;
         theme.textBox.backgroundFocused = palette.surface0;
@@ -506,13 +514,6 @@ namespace tinyui {
         theme.textBox.cursor = palette.text;
         theme.textBox.selection = palette.mauve;
         theme.textBox.selection.a = 0.35f;
-
-        theme.checkbox.boxBackground = palette.surface0;
-        theme.checkbox.boxHovered = palette.surface1;
-        theme.checkbox.boxChecked = palette.mauve;
-        theme.checkbox.border = palette.surface2;
-        theme.checkbox.checkmark = palette.base;
-        theme.checkbox.text = palette.text;
 
         theme.toggle.trackOff = palette.surface0;
         theme.toggle.trackOffHovered = palette.surface1;
