@@ -42,6 +42,13 @@ namespace tinyui {
 		return m_gap;
 	}
 
+	tinycore::Size StackLayout::Measure(Widget& parent, tinycore::Size availableSize) {
+		if (m_direction == LayoutDirection::Vertical)
+			return MeasureVertical(parent, availableSize);
+
+		return MeasureHorizontal(parent, availableSize);
+	}
+
 	void StackLayout::Arrange(Widget& parent) {
 		if (m_direction == LayoutDirection::Horizontal) {
 			ArrangeHorizontal(parent);
@@ -51,116 +58,127 @@ namespace tinyui {
 		ArrangeVertical(parent);
 	}
 
-	void StackLayout::ArrangeHorizontal(Widget& parent) {
-		Rect parentRect = parent.GetContentRect();
+	tinycore::Size StackLayout::MeasureHorizontal(Widget& parent, tinycore::Size availableSize) {
+		tinycore::Size result { };
 
-		std::size_t visibleChildCount = 0;
+		std::size_t visibleCount = 0;
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
 			Widget* child = parent.GetChild(index);
-			if (child && child->IsVisible())
-				++visibleChildCount;
-		}
 
-		if (visibleChildCount == 0)
-			return;
-
-		float totalGap = m_gap * static_cast<float>(visibleChildCount - 1);
-
-		float availableWidth = parentRect.w - m_padding.left - m_padding.right - totalGap;
-		if (availableWidth < 0.f)
-			availableWidth = 0.f;
-
-		float availableHeight = parentRect.h - m_padding.top - m_padding.bottom;
-		if (availableHeight < 0.f)
-			availableHeight = 0.f;
-
-		float fixedWidth = 0.f;
-		float totalStretch = 0.f;
-		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
-			Widget* child = parent.GetChild(index);
 			if (!child || !child->IsVisible())
 				continue;
 
-			const LayoutStyle& style = child->GetLayoutStyle();
-			fixedWidth += style.margin.left, style.margin.right;
-			if (style.stretch > 0.f) {
-				totalStretch += style.stretch;
-				continue;
-			}
+			LayoutStyle& style = child->GetLayoutStyle();
 
-			float childWidth = style.preferredSize.width;
-			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
+			tinycore::Size childAvailableSize { availableSize.width, availableSize.height - style.margin.top - style.margin.bottom };
+			tinycore::Size childSize = child->MeasureTree(childAvailableSize);
 
-			fixedWidth += childWidth;
+			float totalChildWidth = childSize.width + style.margin.left + style.margin.right;
+			float totalChildHeight = childSize.height + style.margin.top + style.margin.bottom;
+
+			result.width += totalChildWidth;
+			if (totalChildHeight > result.height)
+				result.height = totalChildHeight;
+
+			++visibleCount;
 		}
 
-		float remainingWidth = availableWidth - fixedWidth;
-		if (remainingWidth < 0.f)
-			remainingWidth = 0.f;
+		if (visibleCount > 1)
+			result.width += m_gap * static_cast<float>(visibleCount - 1);
 
-		float currentX = parentRect.x + m_padding.left;
-		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
-			Widget* child = parent.GetChild(index);
-			if (!child || !child->IsVisible())
-				continue;
+		result.width += m_padding.left + m_padding.right;
+		result.height += m_padding.top + m_padding.bottom;
 
-			const LayoutStyle& style = child->GetLayoutStyle();
-			currentX += style.margin.left;
-			
-			float childWidth = style.preferredSize.width;
-			if (style.stretch > 0.f && totalStretch > 0.f)
-				childWidth = remainingWidth * (style.stretch / totalStretch);
-
-			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
-
-			float availableChildHeight = availableHeight - style.margin.top - style.margin.bottom;
-			if (availableChildHeight < 0.0f)
-				availableChildHeight = 0.0f;
-
-			float childHeight = availableChildHeight;
-			if (style.verticalAlignment != LayoutAlignment::Stretch && style.preferredSize.height > 0.0f)
-				childHeight = style.preferredSize.height;
-
-			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
-
-			float childY = parentRect.y + m_padding.top + style.margin.top;
-			if (style.verticalAlignment != LayoutAlignment::Stretch)
-				childY += AlignOffset(availableChildHeight, childHeight, style.verticalAlignment);
-
-			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
-
-			child->SetRect({ currentX, childY, childWidth, childHeight });
-
-			currentX += childWidth + style.margin.right + m_gap;
-		}
+		return result;
 	}
 
-	void StackLayout::ArrangeVertical(Widget& parent) {
-		tinycore::Rect parentRect = parent.GetContentRect();
+	tinycore::Size StackLayout::MeasureVertical(Widget& parent, tinycore::Size availableSize) {
+		tinycore::Size result { };
 
-		std::size_t visibleChildCount = 0;
+		std::size_t visibleCount = 0;
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
 			Widget* child = parent.GetChild(index);
+			if (!child || !child->IsVisible())
+				continue;
 
-			if (child && child->IsVisible())
-				++visibleChildCount;
+			LayoutStyle& style = child->GetLayoutStyle();
+
+			tinycore::Size childAvailableSize { availableSize.width - style.margin.left - style.margin.right, availableSize.height };
+			tinycore::Size childSize = child->MeasureTree(childAvailableSize);
+
+			float totalChildWidth = childSize.width + style.margin.left + style.margin.right;
+			float totalChildHeight = childSize.height + style.margin.top + style.margin.bottom;
+			if (totalChildWidth > result.width)
+				result.width = totalChildWidth;
+
+			result.height += totalChildHeight;
+
+			++visibleCount;
 		}
 
-		if (visibleChildCount == 0)
-			return;
+		if (visibleCount > 1)
+			result.height += m_gap * static_cast<float>(visibleCount - 1);
 
-		float totalGap = m_gap * static_cast<float>(visibleChildCount - 1);
+		result.width += m_padding.left + m_padding.right;
+		result.height += m_padding.top + m_padding.bottom;
 
-		float availableWidth = parentRect.w - m_padding.left - m_padding.right;
-		float availableHeight = parentRect.h - m_padding.top - m_padding.bottom - totalGap;
+		return result;
+	}
+
+	void StackLayout::ArrangeHorizontal(Widget& parent) {
+		tinycore::Rect contentRect = parent.GetContentRect();
+
+		float x = contentRect.x + m_padding.left;
+		float y = contentRect.y + m_padding.top;
+
+		float availableWidth = contentRect.w - m_padding.left - m_padding.right;
+		float availableHeight = contentRect.h - m_padding.top - m_padding.bottom;
+
 		if (availableWidth < 0.0f)
 			availableWidth = 0.0f;
 
 		if (availableHeight < 0.0f)
 			availableHeight = 0.0f;
 
-		float fixedHeight = 0.0f;
+		std::size_t visibleCount = 0;
+		float fixedWidth = 0.0f;
 		float totalStretch = 0.0f;
+		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
+			Widget* child = parent.GetChild(index);
+			if (!child || !child->IsVisible())
+				continue;
+
+			LayoutStyle& style = child->GetLayoutStyle();
+
+			++visibleCount;
+
+			fixedWidth += style.margin.left + style.margin.right;
+			if (style.stretch > 0.0f) {
+				totalStretch += style.stretch;
+				fixedWidth += style.minSize.width;
+				continue;
+			}
+
+			tinycore::Size desiredSize = child->GetDesiredSize();
+
+			float childWidth = desiredSize.width;
+			if (style.preferredSize.width > 0.0f)
+				childWidth = style.preferredSize.width;
+
+			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
+
+			fixedWidth += childWidth;
+		}
+
+		if (visibleCount > 1)
+			fixedWidth += m_gap * static_cast<float>(visibleCount - 1);
+
+		float remainingWidth = availableWidth - fixedWidth;
+
+		if (remainingWidth < 0.0f)
+			remainingWidth = 0.0f;
+
+		std::size_t arrangedCount = 0;
 
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
 			Widget* child = parent.GetChild(index);
@@ -168,56 +186,142 @@ namespace tinyui {
 			if (!child || !child->IsVisible())
 				continue;
 
-			const LayoutStyle& style = child->GetLayoutStyle();
+			LayoutStyle& style = child->GetLayoutStyle();
+			tinycore::Size desiredSize = child->GetDesiredSize();
+
+			float childWidth = desiredSize.width;
+			float childHeight = desiredSize.height;
+			if (style.stretch > 0.0f && totalStretch > 0.0f)
+				childWidth = style.minSize.width + remainingWidth * (style.stretch / totalStretch);
+			else if (style.preferredSize.width > 0.0f)
+				childWidth = style.preferredSize.width;
+
+			if (style.preferredSize.height > 0.0f)
+				childHeight = style.preferredSize.height;
+
+			float availableChildHeight = availableHeight - style.margin.top - style.margin.bottom;
+			if (availableChildHeight < 0.0f)
+				availableChildHeight = 0.0f;
+
+			if (style.verticalAlignment == LayoutAlignment::Stretch)
+				childHeight = availableChildHeight;
+
+			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
+			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
+
+			float childX = x + style.margin.left;
+			float childY = y + style.margin.top;
+			if (style.verticalAlignment == LayoutAlignment::Center)
+				childY = y + style.margin.top + (availableChildHeight - childHeight) * 0.5f;
+			else if (style.verticalAlignment == LayoutAlignment::End)
+				childY = y + style.margin.top + availableChildHeight - childHeight;
+
+			child->SetRect({ childX, childY, childWidth, childHeight });
+
+			x += style.margin.left + childWidth + style.margin.right;
+
+			++arrangedCount;
+			if (arrangedCount < visibleCount)
+				x += m_gap;
+		}
+	}
+
+	void StackLayout::ArrangeVertical(Widget& parent) {
+		tinycore::Rect contentRect = parent.GetContentRect();
+
+		float x = contentRect.x + m_padding.left;
+		float y = contentRect.y + m_padding.top;
+
+		float availableWidth = contentRect.w - m_padding.left - m_padding.right;
+		float availableHeight = contentRect.h - m_padding.top - m_padding.bottom;
+
+		if (availableWidth < 0.0f)
+			availableWidth = 0.0f;
+
+		if (availableHeight < 0.0f)
+			availableHeight = 0.0f;
+
+		std::size_t visibleCount = 0;
+		float fixedHeight = 0.0f;
+		float totalStretch = 0.0f;
+		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
+			Widget* child = parent.GetChild(index);
+			if (!child || !child->IsVisible())
+				continue;
+
+			LayoutStyle& style = child->GetLayoutStyle();
+
+			++visibleCount;
+
 			fixedHeight += style.margin.top + style.margin.bottom;
 			if (style.stretch > 0.0f) {
 				totalStretch += style.stretch;
+				fixedHeight += style.minSize.height;
 				continue;
 			}
 
-			float childHeight = style.preferredSize.height;
+			tinycore::Size desiredSize = child->GetDesiredSize();
+
+			float childHeight = desiredSize.height;
+			if (style.preferredSize.height > 0.0f)
+				childHeight = style.preferredSize.height;
+
 			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
 
 			fixedHeight += childHeight;
 		}
 
+		if (visibleCount > 1)
+			fixedHeight += m_gap * static_cast<float>(visibleCount - 1);
+
 		float remainingHeight = availableHeight - fixedHeight;
 		if (remainingHeight < 0.0f)
 			remainingHeight = 0.0f;
 
-		float currentY = parentRect.y + m_padding.top;
+		std::size_t arrangedCount = 0;
 		for (std::size_t index = 0; index < parent.GetChildCount(); ++index) {
 			Widget* child = parent.GetChild(index);
-
 			if (!child || !child->IsVisible())
 				continue;
 
-			const LayoutStyle& style = child->GetLayoutStyle();
+			LayoutStyle& style = child->GetLayoutStyle();
+			tinycore::Size desiredSize = child->GetDesiredSize();
 
-			currentY += style.margin.top;
-
-			float childHeight = style.preferredSize.height;
+			float childWidth = desiredSize.width;
+			float childHeight = desiredSize.height;
 			if (style.stretch > 0.0f && totalStretch > 0.0f)
-				childHeight = remainingHeight * (style.stretch / totalStretch);
-
-			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
+				childHeight = style.minSize.height + remainingHeight * (style.stretch / totalStretch);
+			else if (style.preferredSize.height > 0.0f)
+				childHeight = style.preferredSize.height;
 
 			float availableChildWidth = availableWidth - style.margin.left - style.margin.right;
-			if (availableChildWidth < 0.f)
-				availableChildWidth = 0.f;
+			if (availableChildWidth < 0.0f)
+				availableChildWidth = 0.0f;
 
-			float childWidth = availableChildWidth;
-			if (style.horizontalAlignment != LayoutAlignment::Stretch && style.preferredSize.width > 0.f)
+			if (style.horizontalAlignment == LayoutAlignment::Stretch)
+				childWidth = availableChildWidth;
+
+			if (style.preferredSize.width > 0.0f)
 				childWidth = style.preferredSize.width;
 
 			childWidth = tinycore::Clamp(childWidth, style.minSize.width, style.maxSize.width);
-			float childX = parentRect.x + m_padding.left + style.margin.left;
-			if (style.horizontalAlignment != LayoutAlignment::Stretch)
-				childX += AlignOffset(availableChildWidth, childWidth, style.horizontalAlignment);
+			childHeight = tinycore::Clamp(childHeight, style.minSize.height, style.maxSize.height);
 
-			child->SetRect({ childX, currentY, childWidth, childHeight });
+			float childX = x + style.margin.left;
+			float childY = y + style.margin.top;
 
-			currentY += childHeight + style.margin.bottom + m_gap;
+			if (style.horizontalAlignment == LayoutAlignment::Center)
+				childX = x + style.margin.left + (availableChildWidth - childWidth) * 0.5f;
+			else if (style.horizontalAlignment == LayoutAlignment::End)
+				childX = x + style.margin.left + availableChildWidth - childWidth;
+
+			child->SetRect({ childX, childY, childWidth, childHeight });
+
+			y += style.margin.top + childHeight + style.margin.bottom;
+
+			++arrangedCount;
+			if (arrangedCount < visibleCount)
+				y += m_gap;
 		}
 	}
 }

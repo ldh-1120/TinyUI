@@ -13,16 +13,29 @@ namespace tinyui {
 	}
 
 	void Slider::SetValue(float value) {
+		SetValueInternal(value, false);
+	}
+
+	float Slider::GetValue() const {
+		return m_value;
+	}
+
+	void Slider::SetUserValue(float value) {
+		SetValueInternal(value, true);
+	}
+
+	void Slider::SetValueInternal(float value, bool notifyChanged) {
 		float clampedValue = tinycore::Clamp(value, m_minimum, m_maximum);
 		if (m_value == clampedValue)
 			return;
 
 		m_value = clampedValue;
-		m_changed = true;
+		if (notifyChanged)
+			m_changed = true;
 	}
 
-	float Slider::GetValue() const {
-		return m_value;
+	bool Slider::HasPendingChange() const {
+		return m_changed;
 	}
 
 	void Slider::SetRange(float minimum, float maximum) {
@@ -31,7 +44,7 @@ namespace tinyui {
 		if (m_minimum >= m_maximum)
 			m_minimum = m_maximum;
 		
-		SetValue(m_value);
+		SetValueInternal(m_value, false);
 	}
 
 	float Slider::GetMinimum() const {
@@ -75,6 +88,7 @@ namespace tinyui {
 
 		float trackHeight = GetTrackHeight(theme);
 		float thumbRadius = GetThumbRadius(theme);
+		float visualThumbRadius = GetVisualThumbRadius(theme);
 		tinycore::Rect trackRect { rect.x + thumbRadius, rect.y + (rect.h - trackHeight) * 0.5f, rect.w - thumbRadius * 2.f, trackHeight };
 
 		float normalizedValue = GetNormalizedValue();
@@ -82,15 +96,10 @@ namespace tinyui {
 		float thumbY = rect.y + rect.h * 0.5f;
 		tinycore::Rect fillRect { trackRect.x, trackRect.y, thumbX - trackRect.x, trackRect.h };
 
-		tinycore::Color thumbColor = theme.slider.thumb;
-		if (m_dragging)
-			thumbColor = theme.slider.thumbPressed;
-		else if (IsHovered())
-			thumbColor = theme.slider.thumbHovered;
-
+		tinycore::Color thumbColor = GetAnimatedThumbColor(theme);
 		context.renderer.FillRect(trackRect, theme.slider.track, trackHeight * 0.5f);
 		context.renderer.FillRect(fillRect, theme.slider.fill, trackHeight * 0.5f);
-		context.renderer.FillCircle({ thumbX, thumbY }, thumbRadius, thumbColor);
+		context.renderer.FillCircle({ thumbX, thumbY }, visualThumbRadius, thumbColor);
 	}
 
 	void Slider::OnMouseDown(MouseEvent& event) {
@@ -98,7 +107,7 @@ namespace tinyui {
 			return;
 
 		m_dragging = true;
-		SetValueFromPosition(event.position);
+		SetValueFromPosition(event.position, *event.theme);
 		event.Accept();
 	}
 
@@ -106,7 +115,7 @@ namespace tinyui {
 		if (!m_dragging)
 			return;
 
-		SetValueFromPosition(event.position);
+		SetValueFromPosition(event.position, *event.theme);
 		event.Accept();
 	}
 
@@ -115,14 +124,111 @@ namespace tinyui {
 			return;
 
 		m_dragging = false;
-		SetValueFromPosition(event.position);
+		SetValueFromPosition(event.position, *event.theme);
 		event.Accept();
 	}
 
-	void Slider::SetValueFromPosition(tinycore::Vec2 position) {
+	void Slider::OnKeyDown(KeyEvent& event) {
+		if (event.key == tinycore::KeyCode::Left || event.key == tinycore::KeyCode::Down) {
+			float step = event.shiftDown ? GetLargeStep() : GetSmallStep();
+			AddUserValue(-step);
+
+			event.Accept();
+			return;
+		}
+
+		if (event.key == tinycore::KeyCode::Right || event.key == tinycore::KeyCode::Up) {
+			float step = event.shiftDown ? GetLargeStep() : GetSmallStep();
+			AddUserValue(step);
+
+			event.Accept();
+			return;
+		}
+
+		if (event.key == tinycore::KeyCode::PageDown) {
+			AddUserValue(-GetLargeStep());
+
+			event.Accept();
+			return;
+		}
+
+		if (event.key == tinycore::KeyCode::PageUp) {
+			AddUserValue(GetLargeStep());
+
+			event.Accept();
+			return;
+		}
+
+		if (event.key == tinycore::KeyCode::Home) {
+			SetUserValue(m_minimum);
+
+			event.Accept();
+			return;
+		}
+
+		if (event.key == tinycore::KeyCode::End) {
+			SetUserValue(m_maximum);
+
+			event.Accept();
+			return;
+		}
+	}
+
+	bool Slider::OnUpdate(float deltaTime) {
+		float previousHoverT = m_hoverT;
+		float previousDragT = m_dragT;
+
+		float hoverTarget = IsHovered() ? 1.f : 0.f;
+		float dragTarget = m_dragging ? 1.f : 0.f;
+
+		const float hoverSpeed = 12.f;
+		const float dragSpeed = 12.f;
+
+		m_hoverT = tinycore::MoveTowards(m_hoverT, hoverTarget, hoverSpeed * deltaTime);
+		m_dragT = tinycore::MoveTowards(m_dragT, dragTarget, dragSpeed * deltaTime);
+
+		return previousHoverT != m_hoverT || previousDragT != m_dragT;
+	}
+
+	void Slider::AddUserValue(float delta) {
+		SetUserValue(m_value + delta);
+	}
+
+	float Slider::GetSmallStep() const {
+		if (m_options.smallStep <= 0.0f)
+			return 0.01f;
+
+		return m_options.smallStep;
+	}
+
+	float Slider::GetLargeStep() const {
+		if (m_options.largeStep <= 0.0f)
+			return GetSmallStep() * 10.0f;
+
+		return m_options.largeStep;
+	}
+
+	tinycore::Color Slider::GetAnimatedThumbColor(const Theme& theme) const {
+		tinycore::Color hoverColor = tinycore::LerpColor(theme.slider.thumb, theme.slider.thumbHovered, m_hoverT);
+
+		return tinycore::LerpColor(hoverColor, theme.slider.thumbPressed, m_dragT);
+	}
+
+	float Slider::GetVisualThumbRadius(const Theme& theme) const {
+		float baseRadius = GetThumbRadius(theme);
+
+		float hoverRadius = baseRadius * theme.slider.thumbHoverScale;
+		float pressedRadius = baseRadius * theme.slider.thumbPressedScale;
+
+		float radius = tinycore::Lerp(baseRadius, hoverRadius, m_hoverT);
+
+		return tinycore::Lerp(radius, pressedRadius, m_dragT);
+	}
+
+	void Slider::SetValueFromPosition(tinycore::Vec2 position, const Theme& theme) {
 		tinycore::Rect rect = GetRect();
 
-		float thumbRadius = 7.f;
+		float thumbRadius = GetThumbRadius(theme);
 		if (m_options.thumbRadius >= 0.f)
 			thumbRadius = m_options.thumbRadius;
 
@@ -135,7 +241,7 @@ namespace tinyui {
 		normalizedValue = tinycore::Clamp01(normalizedValue);
 
 		float value = m_minimum + (m_maximum - m_minimum) * normalizedValue;
-		SetValue(value);
+		SetUserValue(value);
 	}
 
 	float Slider::GetNormalizedValue() const {

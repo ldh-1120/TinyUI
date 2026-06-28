@@ -45,51 +45,6 @@ namespace tinyui {
 	}
 
 	void UIManager::ProcessInput(Widget& root, const tinycore::InputState& input) {
-		Synchronize(root);
-
-		m_lastMousePosition = input.GetMousePosition();
-		tinycore::Vec2 mousePosition = input.GetMousePosition();
-
-		Widget* hitWidget = root.HitTest(mousePosition);
-		SetHoveredWidget(hitWidget);
-		if (input.WasMousePressed(tinycore::MouseButton::Left)) {
-			SetFocusedWidget(hitWidget, FocusReason::Mouse);
-			if (hitWidget) {
-				MouseEvent event { };
-				event.position = mousePosition;
-				event.button = tinycore::MouseButton::Left;
-
-				hitWidget->OnMouseDown(event);
-				if (event.accepted)
-					m_capturedWidget = hitWidget;
-			}
-			Widget* focusWidget = FindFocusableAncestor(hitWidget);
-			SetFocusedWidget(focusWidget, FocusReason::Mouse);
-		}
-
-		if (input.WasMouseReleased(tinycore::MouseButton::Left)) {
-			Widget* targetWidget = m_capturedWidget;
-			if (!targetWidget)
-				targetWidget = hitWidget;
-
-			if (targetWidget) {
-				MouseEvent event { };
-				event.position = mousePosition;
-				event.button = tinycore::MouseButton::Left;
-
-				targetWidget->OnMouseUp(event);
-			}
-
-			m_capturedWidget = nullptr;
-		}
-
-		if (m_capturedWidget) {
-			MouseEvent moveEvent { };
-			moveEvent.position = mousePosition;
-
-			m_capturedWidget->OnMouseMove(moveEvent);
-		}
-
 		ProcessKeyboardInput(root, input);
 	}
 
@@ -268,36 +223,20 @@ namespace tinyui {
 			return;
 
 		if (!root.ContainsWidget(m_focusedWidget)) {
-			SetFocusedWidget(nullptr, FocusReason::Keyboard);
+			SetFocusedWidget(nullptr, FocusReason::Programmatic);
 			return;
 		}
 
-		if (input.WasKeyPressed(tinycore::KeyCode::Enter)) {
-			if (m_focusedWidget)
-				m_showFocusRing = true;
-
-			KeyEvent event { };
-			event.key = tinycore::KeyCode::Enter;
-			event.repeated = false;
-
-			m_focusedWidget->OnKeyDown(event);
-		}
-
-		if (input.WasKeyPressed(tinycore::KeyCode::Space)) {
-			KeyEvent event { };
-			event.key = tinycore::KeyCode::Space;
-			event.repeated = false;
-
-			m_focusedWidget->OnKeyDown(event);
-		}
-
-		if (input.WasKeyReleased(tinycore::KeyCode::Space)) {
-			KeyEvent event { };
-			event.key = tinycore::KeyCode::Space;
-			event.repeated = false;
-
-			m_focusedWidget->OnKeyUp(event);
-		}
+		ProcessFocusedKey(input, tinycore::KeyCode::Enter);
+		ProcessFocusedKey(input, tinycore::KeyCode::Space);
+		ProcessFocusedKey(input, tinycore::KeyCode::Left);
+		ProcessFocusedKey(input, tinycore::KeyCode::Right);
+		ProcessFocusedKey(input, tinycore::KeyCode::Up);
+		ProcessFocusedKey(input, tinycore::KeyCode::Down);
+		ProcessFocusedKey(input, tinycore::KeyCode::PageUp);
+		ProcessFocusedKey(input, tinycore::KeyCode::PageDown);
+		ProcessFocusedKey(input, tinycore::KeyCode::Home);
+		ProcessFocusedKey(input, tinycore::KeyCode::End);
 	}
 
 	Widget* UIManager::FindTooltipWidget(Widget* widget) const {
@@ -396,5 +335,140 @@ namespace tinyui {
 
 		FocusRingStyle style = m_focusedWidget->GetFocusRingStyle(theme);
 		FocusRingPainter::Draw(renderer, m_focusedWidget->GetRect(), style);
+	}
+
+	bool UIManager::HandleMouseMove(Widget& root, tinycore::Vec2 position, const Theme& theme) {
+		m_lastMousePosition = position;
+
+		bool needsRedraw = UpdateHoveredWidget(root, position);
+		if (m_capturedWidget) {
+			if (!root.ContainsWidget(m_capturedWidget)) {
+				m_capturedWidget = nullptr;
+				return true;
+			}
+
+			MouseEvent event { };
+			event.position = position;
+			event.button = tinycore::MouseButton::Left;
+			event.theme = &theme;
+
+			m_capturedWidget->OnMouseMove(event);
+			if (event.accepted)
+				needsRedraw = true;
+		}
+
+		return needsRedraw;
+	}
+
+	bool UIManager::HandleMouseDown(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, const Theme& theme) {
+		m_lastMousePosition = position;
+
+		bool needsRedraw = UpdateHoveredWidget(root, position);
+
+		Widget* hitWidget = root.HitTest(position);
+		Widget* focusWidget = FindFocusableAncestor(hitWidget);
+
+		SetFocusedWidget(focusWidget, FocusReason::Mouse);
+		if (!hitWidget)
+			return true;
+
+		MouseEvent event { };
+		event.position = position;
+		event.button = button;
+		event.theme = &theme;
+
+		hitWidget->OnMouseDown(event);
+		if (event.accepted) {
+			m_capturedWidget = hitWidget;
+			needsRedraw = true;
+		}
+
+		return needsRedraw;
+	}
+
+	bool UIManager::HandleMouseUp(Widget& root, tinycore::MouseButton button, tinycore::Vec2 position, const Theme& theme) {
+		m_lastMousePosition = position;
+
+		bool needsRedraw = UpdateHoveredWidget(root, position);
+
+		Widget* targetWidget = m_capturedWidget;
+		if (!targetWidget)
+			targetWidget = root.HitTest(position);
+
+		if (targetWidget && root.ContainsWidget(targetWidget)) {
+			MouseEvent event { };
+			event.position = position;
+			event.button = button;
+			event.theme = &theme;
+
+			targetWidget->OnMouseUp(event);
+			if (event.accepted)
+				needsRedraw = true;
+		}
+
+		if (m_capturedWidget) {
+			m_capturedWidget = nullptr;
+			needsRedraw = true;
+		}
+
+		return needsRedraw;
+	}
+
+	bool UIManager::UpdateHoveredWidget(Widget& root, tinycore::Vec2 position) {
+		Widget* nextHoveredWidget = root.HitTest(position);
+		if (m_hoveredWidget == nextHoveredWidget)
+			return false;
+
+		if (m_hoveredWidget) {
+			m_hoveredWidget->SetHoveredInternal(false);
+			m_hoveredWidget->OnMouseLeave();
+		}
+
+		m_hoveredWidget = nextHoveredWidget;
+		if (m_hoveredWidget) {
+			m_hoveredWidget->SetHoveredInternal(true);
+			m_hoveredWidget->OnMouseEnter();
+		}
+
+		return true;
+	}
+
+	void UIManager::ProcessFocusedKey(const tinycore::InputState& input, tinycore::KeyCode key) {
+		if (!m_focusedWidget)
+			return;
+
+		if (input.WasKeyPressed(key)) {
+			m_showFocusRing = true;
+
+			KeyEvent event = MakeKeyEvent(input, key, false);
+
+			m_focusedWidget->DispatchKeyDown(event);
+		}
+
+		if (input.WasKeyRepeated(key)) {
+			m_showFocusRing = true;
+
+			KeyEvent event = MakeKeyEvent(input, key, true);
+
+			m_focusedWidget->DispatchKeyDown(event);
+		}
+
+		if (input.WasKeyReleased(key)) {
+			KeyEvent event = MakeKeyEvent(input, key, false);
+
+			m_focusedWidget->DispatchKeyUp(event);
+		}
+	}
+
+	KeyEvent UIManager::MakeKeyEvent(const tinycore::InputState& input, tinycore::KeyCode key, bool repeated) const {
+		KeyEvent event { };
+		event.key = key;
+		event.repeated = repeated;
+
+		event.shiftDown = input.IsKeyDown(tinycore::KeyCode::Shift);
+		event.controlDown = input.IsKeyDown(tinycore::KeyCode::Control);
+		event.altDown = input.IsKeyDown(tinycore::KeyCode::Alt);
+
+		return event;
 	}
 }

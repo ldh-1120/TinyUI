@@ -4,11 +4,15 @@
 #include <TinyCore/Input/MouseButton.h>
 
 namespace tinyui {
+	struct Theme;
+
 	struct MouseEvent {
 		tinycore::Vec2 position { };
 		tinycore::MouseButton button = tinycore::MouseButton::Left;
 
-		bool accepted = true;
+		const Theme* theme = nullptr;
+
+		bool accepted = false;
 
 		void Accept() {
 			accepted = true;

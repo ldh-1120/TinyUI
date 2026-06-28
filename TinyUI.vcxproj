@@ -158,6 +158,9 @@
   <ItemGroup>
     <ClInclude Include="include\TinyUI\Builder\UIBuilder.h" />
     <ClInclude Include="include\TinyUI\Builder\UIScope.h" />
+    <ClInclude Include="include\TinyUI\Controls\PropertyGroup.h" />
+    <ClInclude Include="include\TinyUI\Controls\PropertyRow.h" />
+    <ClInclude Include="include\TinyUI\Controls\PropertySlider.h" />
     <ClInclude Include="include\TinyUI\Core\WidgetKey.h" />
     <ClInclude Include="include\TinyUI\Events\KeyEvent.h" />
     <ClInclude Include="include\TinyUI\Events\MouseEvent.h" />
@@ -188,6 +191,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Builder\UIScope.cpp" />
+    <ClCompile Include="src\Controls\PropertyGroup.cpp" />
+    <ClCompile Include="src\Controls\PropertyRow.cpp" />
+    <ClCompile Include="src\Controls\PropertySlider.cpp" />
     <ClCompile Include="src\Rendering\FocusRingPainter.cpp" />
     <ClCompile Include="src\Rendering\IconPainter.cpp" />
     <ClCompile Include="src\Widgets\Separator.cpp" />

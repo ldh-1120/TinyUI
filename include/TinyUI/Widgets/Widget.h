@@ -134,6 +134,12 @@ namespace tinyui {
 		virtual FocusRingStyle GetFocusRingStyle(const Theme& theme) const;
 		virtual bool ShouldDrawFocusRing() const;
 
+		void DispatchKeyDown(KeyEvent& event);
+		void DispatchKeyUp(KeyEvent& event);
+
+		tinycore::Size MeasureTree(tinycore::Size availableSize);
+		tinycore::Size GetDesiredSize() const;
+
 	protected:
 		virtual void OnRemoved();
 
@@ -154,11 +160,19 @@ namespace tinyui {
 		virtual void OnKeyDown(KeyEvent& event);
 		virtual void OnKeyUp(KeyEvent& event);
 
+		virtual bool ShouldPaintChildren() const;
+		virtual bool ShouldArrangeChildren() const;
+		virtual bool ShouldHitTestChildren() const;
+
+		virtual tinycore::Size MeasureOverride(tinycore::Size availableSize);
+
 	private:
 		friend class UIManager;
 
 		void SetHoveredInternal(bool hovered);
 		void SetFocusedInternal(bool focused);
+
+		tinycore::Size ApplyLayoutConstraints(tinycore::Size size) const;
 
 	private:
 		WidgetKey m_key = WidgetKey::Invalid();
@@ -176,6 +190,8 @@ namespace tinyui {
 		bool m_visited = false;
 
 		std::wstring m_tooltip { };
+
+		tinycore::Size m_desiredSize { };
 
 		LayoutStyle m_layoutStyle { };
 		std::unique_ptr<Layout> m_layout { };

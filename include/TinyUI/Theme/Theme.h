@@ -83,6 +83,9 @@ namespace tinyui {
 
 		float trackHeight = 4.f;
 		float thumbRadius = 7.f;
+
+		float thumbHoverScale = 1.15f;
+		float thumbPressedScale = 1.28f;
 	};
 
 	struct TextBoxTheme {

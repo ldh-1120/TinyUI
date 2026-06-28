@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include <TinyCore/Math/Numeric.h>
 #include <TinyUI/Widgets/Widget.h>
 
 namespace tinyui {
@@ -79,23 +80,24 @@ namespace tinyui {
 		if (m_layout)
 			m_layout->Arrange(*this);
 
+		if (!ShouldArrangeChildren())
+			return;
+
 		for (std::size_t index = 0; index < m_children.size(); ++index)
 			m_children[index]->ArrangeTree();
 	}
 
 	Widget* Widget::HitTest(tinycore::Vec2 position) {
-		if (!m_visible || !m_enabled)
+		if (!IsVisible() || !IsEnabled() || !m_rect.Contains(position))
 			return nullptr;
 
-		for (std::size_t index = m_children.size(); index > 0; --index) {
-			Widget* child = m_children[index - 1].get();
-			Widget* hitWidget = child->HitTest(position);
-			if (hitWidget)
-				return hitWidget;
+		if (ShouldHitTestChildren()) {
+			for (std::size_t index = m_children.size(); index > 0; --index) {
+				Widget* child = m_children[index - 1]->HitTest(position);
+				if (child)
+					return child;
+			}
 		}
-
-		if (!m_rect.Contains(position))
-			return nullptr;
 
 		return this;
 	}
@@ -105,6 +107,9 @@ namespace tinyui {
 			return;
 
 		OnPaint(context);
+		if (!ShouldPaintChildren())
+			return;
+
 		for (std::size_t index = 0; index < m_children.size(); ++index)
 			m_children[index]->PaintTree(context);
 	}
@@ -296,6 +301,30 @@ namespace tinyui {
 		return IsVisible() && IsEnabled() && IsFocused() && IsFocusable();
 	}
 
+	void Widget::DispatchKeyDown(KeyEvent& event) {
+		OnKeyDown(event);
+	}
+
+	void Widget::DispatchKeyUp(KeyEvent& event) {
+		OnKeyUp(event);
+	}
+
+	tinycore::Size Widget::MeasureTree(tinycore::Size availableSize) {
+		if (!IsVisible()) {
+			m_desiredSize = { 0.f, 0.f };
+			return m_desiredSize;
+		}
+
+		tinycore::Size measuredSize = MeasureOverride(availableSize);
+		m_desiredSize = ApplyLayoutConstraints(measuredSize);
+
+		return m_desiredSize;
+	}
+
+	tinycore::Size Widget::GetDesiredSize() const {
+		return m_desiredSize;
+	}
+
 	void Widget::OnRemoved() { }
 
 	bool Widget::OnUpdate(float deltaTime) {
@@ -321,4 +350,38 @@ namespace tinyui {
 	void Widget::OnKeyDown(KeyEvent& event) { }
 
 	void Widget::OnKeyUp(KeyEvent& event) { }
+	
+	bool Widget::ShouldPaintChildren() const {
+		return true;
+	}
+
+	bool Widget::ShouldArrangeChildren() const {
+		return true;
+	}
+
+	bool Widget::ShouldHitTestChildren() const {
+		return true;
+	}
+
+	tinycore::Size Widget::MeasureOverride(tinycore::Size availableSize) {
+		if (m_layout && ShouldArrangeChildren())
+			return m_layout->Measure(*this, availableSize);
+
+		tinycore::Size size = m_layoutStyle.preferredSize;
+
+		return size;
+	}
+
+	tinycore::Size Widget::ApplyLayoutConstraints(tinycore::Size size) const {
+		if (m_layoutStyle.preferredSize.width > 0.0f)
+			size.width = m_layoutStyle.preferredSize.width;
+
+		if (m_layoutStyle.preferredSize.height > 0.0f)
+			size.height = m_layoutStyle.preferredSize.height;
+
+		size.width = tinycore::Clamp(size.width, m_layoutStyle.minSize.width, m_layoutStyle.maxSize.width);
+		size.height = tinycore::Clamp(size.height, m_layoutStyle.minSize.height, m_layoutStyle.maxSize.height);
+
+		return size;
+	}
 }

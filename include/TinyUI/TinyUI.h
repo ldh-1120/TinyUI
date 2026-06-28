@@ -26,4 +26,8 @@
 #include <TinyUI/Widgets/Separator.h>
 #include <TinyUI/Widgets/Slider.h>
 
+#include <TinyUI/Controls/PropertyRow.h>
+#include <TinyUI/Controls/PropertySlider.h>
+#include <TinyUI/Controls/PropertyGroup.h>
+
 #include <TinyUI/UIManager.h>

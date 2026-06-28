@@ -102,6 +102,15 @@
     <ClInclude Include="include\TinyUI\Widgets\Slider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\TinyUI\Controls\PropertySlider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TinyUI\Controls\PropertyGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TinyUI\Controls\PropertyRow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Rendering\Renderer.cpp">
@@ -150,6 +159,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Widgets\Slider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Controls\PropertySlider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Controls\PropertyGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Controls\PropertyRow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

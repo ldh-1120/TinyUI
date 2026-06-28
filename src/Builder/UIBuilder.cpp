@@ -5,6 +5,10 @@
 namespace tinyui {
 	UIBuilder::UIBuilder() {
 		m_root = std::make_unique<Widget>(MakeWidgetKey(L"root"));
+
+		m_root->SetLayout(std::make_unique<StackLayout>(
+			LayoutDirection::Vertical
+		));
 		m_root->MarkVisited();
 	}
 
@@ -31,6 +35,9 @@ namespace tinyui {
 			m_stack.pop_back();
 
 		m_root->RemoveUnvisitedChildren();
+
+		tinycore::Size rootSize = m_root->GetRect().GetSize();
+		m_root->MeasureTree(rootSize);
 		m_root->ArrangeTree();
 
 		m_building = false;
@@ -245,7 +252,7 @@ namespace tinyui {
 		tinyui::Slider& slider = Begin<tinyui::Slider>(keyText);
 		slider.SetRange(minimum, maximum);
 		slider.SetOptions(options);
-		if (!slider.IsDragging())
+		if (!slider.IsDragging() && !slider.HasPendingChange())
 			slider.SetValue(value);
 
 		SliderResult result { };
