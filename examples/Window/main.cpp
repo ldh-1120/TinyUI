@@ -47,6 +47,9 @@ int main() {
                 case PlatformEventType::DpiChanged:
                     std::cout << "DPI Scale: " << event->metrics.scale << '\n';
                     break;
+
+                case PlatformEventType::RedrawRequested:
+                    break;
             }
 
             event = platform->nextEvent();

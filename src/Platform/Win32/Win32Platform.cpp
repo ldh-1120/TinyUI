@@ -49,8 +49,10 @@ namespace tinyui {
         class Win32Platform final : public Platform {
         public:
             ~Win32Platform() override {
-                while (!activeWindows_.empty())
-                    destroyWindow(activeWindows_.back());
+                while (!activeWindows_.empty()) {
+                    if (!destroyWindow(activeWindows_.back()))
+                        std::terminate();
+                }
 
                 if (windowClass_ != 0)
                     UnregisterClassW(className_.c_str(), instance_);
@@ -72,6 +74,7 @@ namespace tinyui {
 
                 WNDCLASSEXW descriptor{};
                 descriptor.cbSize = sizeof(descriptor);
+                descriptor.hInstance = instance_;
                 descriptor.lpfnWndProc = &Win32Platform::windowProc;
                 descriptor.lpszClassName = className_.c_str();
                 descriptor.hCursor = LoadCursor(nullptr, IDC_ARROW);
@@ -133,11 +136,12 @@ namespace tinyui {
                 if (!window)
                     return false;
 
-                if (window->handle)
-                    DestroyWindow(window->handle);
+                if (window->handle && !DestroyWindow(window->handle))
+                    return false;
 
                 std::erase(activeWindows_, id);
                 windows_.erase(id);
+
                 return true;
             }
 
@@ -148,6 +152,7 @@ namespace tinyui {
 
                 ShowWindow(window->handle, SW_SHOW);
                 UpdateWindow(window->handle);
+
                 return true;
             }
 
@@ -255,6 +260,9 @@ namespace tinyui {
                         PAINTSTRUCT paint{};
                         BeginPaint(handle, &paint);
                         EndPaint(handle, &paint);
+
+                        runtime->emit({window->id, PlatformEventType::RedrawRequested, window->metrics});
+
                         return 0;
                     }
 

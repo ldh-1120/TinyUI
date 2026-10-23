@@ -8,7 +8,8 @@ namespace tinyui {
     enum class PlatformEventType : std::uint32_t {
         CloseRequested,
         Resized,
-        DpiChanged
+        DpiChanged,
+        RedrawRequested
     };
 
     struct PlatformEvent {

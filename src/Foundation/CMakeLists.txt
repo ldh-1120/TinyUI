@@ -1,7 +1,13 @@
-add_library(tinyui_foundation INTERFACE ../../include/TinyUI/Foundation/Slotmap.h)
-add_library(TinyUI::Foundation ALIAS tinyui_foundation)
+add_library(tinyui_foundation INTERFACE)
 
-target_link_libraries(tinyui_foundation INTERFACE tinyui_compiler_options)
+add_library(TinyUI::Foundation
+        ALIAS tinyui_foundation
+)
+
+target_link_libraries(tinyui_foundation INTERFACE
+        tinyui_compiler_options
+)
+
 target_include_directories(tinyui_foundation INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
