@@ -1,0 +1,11 @@
+.idea/
+build/
+cmake-build-*/
+out/
+
+vcpkg_installed/
+
+*.user
+*.log
+
+.DS_Store
