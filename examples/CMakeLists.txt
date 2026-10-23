@@ -1,4 +1,4 @@
-add_executable(TinyUIMinimal Minimal/main.cpp Window/main.cpp)
+add_executable(TinyUIMinimal Minimal/main.cpp)
 target_link_libraries(TinyUIMinimal PRIVATE TinyUI::Foundation)
 
 tinyui_set_warnings(TinyUIMinimal)

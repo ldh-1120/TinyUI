@@ -1,6 +1,6 @@
 function(tinyui_set_warnings target)
     if (MSVC)
-        target_compile_options(${target} PRIVATE /W4 /permissive- /Zc:_cplusplus /std:c++latest)
+        target_compile_options(${target} PRIVATE /W4 /permissive- /Zc:__cplusplus /std:c++latest)
     else ()
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
     endif ()
