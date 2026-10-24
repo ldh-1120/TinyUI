@@ -1,4 +1,5 @@
-add_library(tinyui_compiler_options INTERFACE)
+add_library(tinyui_compiler_options INTERFACE
+        ../include/TinyUI/Render/VulkanRuntime.h)
 
 if(MSVC)
     target_compile_options(tinyui_compiler_options INTERFACE
