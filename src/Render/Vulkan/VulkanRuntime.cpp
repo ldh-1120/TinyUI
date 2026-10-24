@@ -1,11 +1,22 @@
 #include <TinyUI/Render/VulkanRuntime.h>
 
-#include <vulkan/vulkan.h>
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <Windows.h>
+#endif
 
+#include <vulkan/vulkan.h>
+#include <TinyUI/Foundation/SlotMap.h>
+
+#include <array>
+#include <optional>
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -13,7 +24,7 @@
 namespace tinyui {
     namespace {
         Error vkError(const char* message, VkResult result) {
-            return {ErrorCode::GraphicsFailure, message, static_cast<uint32_t>(result)};
+            return {ErrorCode::GraphicsFailure, message, static_cast<int64_t>(result)};
         }
 
         Result<std::vector<VkExtensionProperties> > getInstanceExtensions() {
@@ -89,14 +100,58 @@ namespace tinyui {
     }
 
     struct VulkanRuntime::Impl {
+        struct Surface {
+            explicit Surface(VkInstance instance) : instance(instance) {}
+
+            ~Surface() {
+                if (handle != VK_NULL_HANDLE)
+                    vkDestroySurfaceKHR(instance, handle, nullptr);
+            }
+
+            VkInstance instance = VK_NULL_HANDLE;
+            VkSurfaceKHR handle = VK_NULL_HANDLE;
+
+            std::uint32_t deviceCount = 0;
+        };
+
+        struct Device {
+            explicit Device(VulkanSurfaceId surface) : surface(surface) {}
+
+            ~Device() {
+                if (handle != VK_NULL_HANDLE)
+                    vkDestroyDevice(handle, nullptr);
+            }
+
+            VkDevice handle = VK_NULL_HANDLE;
+
+            VkQueue graphicsQueue = VK_NULL_HANDLE;
+            VkQueue presentQueue = VK_NULL_HANDLE;
+
+            VulkanSurfaceId surface{};
+            VulkanDeviceInfo info{};
+        };
+
         VkInstance instance = VK_NULL_HANDLE;
 
         VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
         PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugMessenger = nullptr;
 
         bool validationEnabled = false;
+        bool win32SurfaceEnabled = false;
+
+        SlotMap<Surface, VulkanSurfaceTag> surfaces;
+        SlotMap<Device, VulkanDeviceTag> devices;
+
+        std::vector<VulkanSurfaceId> surfaceIds;
+        std::vector<VulkanDeviceId> deviceIds;
 
         ~Impl() {
+            for (VulkanDeviceId id: deviceIds)
+                devices.erase(id);
+
+            for (VulkanSurfaceId id: surfaceIds)
+                surfaces.erase(id);
+
             if (debugMessenger != VK_NULL_HANDLE && destroyDebugMessenger)
                 destroyDebugMessenger(instance, debugMessenger, nullptr);
 
@@ -197,6 +252,8 @@ namespace tinyui {
         if (result != VK_SUCCESS)
             return std::unexpected(vkError("Failed to create Vulkan instance.", result));
 
+        impl->win32SurfaceEnabled = std::ranges::find(enabledExtensions, "VK_KHR_surface") != enabledExtensions.end() && std::ranges::find(enabledExtensions, "VK_KHR_win32_surface") != enabledExtensions.end();
+
         if (options.enableValidation) {
             PFN_vkCreateDebugUtilsMessengerEXT createMessenger = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(impl->instance, "vkCreateDebugUtilsMessengerEXT"));
             impl->destroyDebugMessenger = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(impl->instance, "vkDestroyDebugUtilsMessengerEXT"));
@@ -258,5 +315,241 @@ namespace tinyui {
         }
 
         return adapters;
+    }
+
+    Result<VulkanSurfaceId> VulkanRuntime::createSurface(NativeWindowHandle window) {
+#if defined(_WIN32)
+        if (window.system != NativeWindowSystem::Win32)
+            return std::unexpected(Error{ErrorCode::Unsupported, "Unsupported native window system."});
+
+        if (window.window == 0 || window.connection == 0)
+            return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid native window handle."});
+
+        if (!impl_->win32SurfaceEnabled)
+            return std::unexpected(Error{ErrorCode::Unsupported, "Required Win32 Vulkan extensions are not enabled."});
+
+        impl_->surfaceIds.reserve(impl_->surfaceIds.size() + 1);
+
+        const VulkanSurfaceId id = impl_->surfaces.emplace(impl_->instance);
+        Impl::Surface* surface = impl_->surfaces.get(id);
+
+        VkWin32SurfaceCreateInfoKHR info{};
+        info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+        info.hwnd = reinterpret_cast<HWND>(window.window);
+        info.hinstance = reinterpret_cast<HINSTANCE>(window.connection);
+
+        const VkResult result = vkCreateWin32SurfaceKHR(impl_->instance, &info, nullptr, &surface->handle);
+        if (result != VK_SUCCESS) {
+            impl_->surfaces.erase(id);
+            return std::unexpected(Error{ErrorCode::GraphicsFailure, "Failed to create Vulkan Win32 surface."});
+        }
+
+        impl_->surfaceIds.push_back(id);
+        return id;
+#else
+        return std::unexpected(Error{ErrorCode::Unsupported, "Vulkan surface backend is not implemented."});
+#endif
+    }
+
+    bool VulkanRuntime::destroySurface(VulkanSurfaceId id) {
+        Impl::Surface* surface = impl_->surfaces.get(id);
+        if (!surface || surface->deviceCount != 0)
+            return false;
+
+        std::erase(impl_->surfaceIds, id);
+
+        return impl_->surfaces.erase(id);
+    }
+
+    Result<VulkanDeviceId> VulkanRuntime::createDevice(VulkanSurfaceId surfaceId) {
+        Impl::Surface* surface = impl_->surfaces.get(surfaceId);
+        if (!surface)
+            return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid surface handle."});
+
+        std::uint32_t physicalDeviceCount = 0;
+        VkResult result = vkEnumeratePhysicalDevices(impl_->instance, &physicalDeviceCount, nullptr);
+        if (result != VK_SUCCESS)
+            return std::unexpected(vkError("Failed to enumerate physical devices.", result));
+
+        std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+        result = vkEnumeratePhysicalDevices(impl_->instance, &physicalDeviceCount, physicalDevices.data());
+        if (result != VK_SUCCESS)
+            return std::unexpected(vkError("Failed to query physical devices.", result));
+
+        physicalDevices.resize(physicalDeviceCount);
+
+        struct Candidate {
+            VkPhysicalDevice device = VK_NULL_HANDLE;
+            std::uint32_t graphicsFamily = 0;
+            std::uint32_t presentFamily = 0;
+            VkPhysicalDeviceProperties properties{};
+            int score = -1;
+        };
+
+        Candidate best{};
+        for (VkPhysicalDevice physicalDevice: physicalDevices) {
+            VkPhysicalDeviceProperties properties{};
+            vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+            if (properties.apiVersion < VK_API_VERSION_1_1)
+                continue;
+
+            std::uint32_t extensionCount = 0;
+            result = vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+            if (result != VK_SUCCESS)
+                continue;
+
+            std::vector<VkExtensionProperties> extensions(extensionCount);
+            result = vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, extensions.data());
+            if (result != VK_SUCCESS)
+                continue;
+
+            extensions.resize(extensionCount);
+
+            const bool hasSwapchain = std::ranges::any_of(extensions, [](const VkExtensionProperties& extension) {
+                return std::strcmp(extension.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
+            });
+
+            if (!hasSwapchain)
+                continue;
+
+            std::uint32_t queueCount = 0;
+            vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, nullptr);
+
+            std::vector<VkQueueFamilyProperties> queues(queueCount);
+            vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, queues.data());
+
+            std::optional<std::uint32_t> graphicsFamily;
+            std::optional<std::uint32_t> presentFamily;
+            std::optional<std::uint32_t> sharedFamily;
+            for (std::uint32_t i = 0; i < queueCount; ++i) {
+                if (queues[i].queueCount == 0)
+                    continue;
+
+                const bool graphics = (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0;
+
+                VkBool32 present = false;
+                result = vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface->handle, &present);
+                if (result != VK_SUCCESS)
+                    return std::unexpected(vkError("Failed to query surface presentation support.", result));
+
+                if (graphics && !graphicsFamily)
+                    graphicsFamily = i;
+
+                if (present == VK_TRUE && !presentFamily)
+                    presentFamily = i;
+
+                if (graphics && present == VK_TRUE && !sharedFamily)
+                    sharedFamily = i;
+            }
+
+            if (!graphicsFamily || !presentFamily)
+                continue;
+
+            if (sharedFamily) {
+                graphicsFamily = sharedFamily;
+                presentFamily = sharedFamily;
+            }
+
+            std::uint32_t formatCount = 0;
+            std::uint32_t presentModeCount = 0;
+            result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface->handle, &formatCount, nullptr);
+            if (result != VK_SUCCESS)
+                return std::unexpected(vkError("Failed to query surface formats.", result));
+
+            result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface->handle, &presentModeCount, nullptr);
+            if (result != VK_SUCCESS)
+                return std::unexpected(vkError("Failed to query present modes.", result));
+
+            if (formatCount == 0 || presentModeCount == 0)
+                continue;
+
+            int score = 0;
+            if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+                score += 100;
+            else if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+                score += 50;
+
+            if (*graphicsFamily == *presentFamily)
+                score += 10;
+
+            if (score <= best.score)
+                continue;
+
+            best.device = physicalDevice;
+            best.graphicsFamily = *graphicsFamily;
+            best.presentFamily = *presentFamily;
+            best.properties = properties;
+            best.score = score;
+        }
+
+        if (best.device == VK_NULL_HANDLE)
+            return std::unexpected(Error{ErrorCode::Unsupported, "No Vulkan device supports this surface."});
+
+        impl_->deviceIds.reserve(impl_->deviceIds.size() + 1);
+
+        const VulkanDeviceId id = impl_->devices.emplace(surfaceId);
+        Impl::Device* device = impl_->devices.get(id);
+
+        device->info.adapterName = best.properties.deviceName;
+        device->info.graphicsQueueFamily = best.graphicsFamily;
+        device->info.presentQueueFamily = best.presentFamily;
+
+        const float priority = 1.0f;
+
+        std::array<std::uint32_t, 2> families{best.graphicsFamily, best.presentFamily};
+        const std::uint32_t familyCount = best.graphicsFamily == best.presentFamily ? 1u : 2u;
+
+        std::array<VkDeviceQueueCreateInfo, 2> queueInfos{};
+        for (std::uint32_t i = 0; i < familyCount; ++i) {
+            queueInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[i].queueFamilyIndex = families[i];
+            queueInfos[i].queueCount = 1;
+            queueInfos[i].pQueuePriorities = &priority;
+        }
+
+        const char* requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+        VkDeviceCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        info.queueCreateInfoCount = familyCount;
+        info.pQueueCreateInfos = queueInfos.data();
+        info.enabledExtensionCount = 1;
+        info.ppEnabledExtensionNames = requiredExtensions;
+
+        result = vkCreateDevice(best.device, &info, nullptr, &device->handle);
+        if (result != VK_SUCCESS) {
+            impl_->devices.erase(id);
+            return std::unexpected(vkError("Failed to create Vulkan logical device.", result));
+        }
+
+        vkGetDeviceQueue(device->handle, best.graphicsFamily, 0, &device->graphicsQueue);
+        vkGetDeviceQueue(device->handle, best.presentFamily, 0, &device->presentQueue);
+
+        ++surface->deviceCount;
+        impl_->deviceIds.push_back(id);
+
+        return id;
+    }
+
+    bool VulkanRuntime::destroyDevice(VulkanDeviceId id) {
+        Impl::Device* device = impl_->devices.get(id);
+        if (!device)
+            return false;
+
+        Impl::Surface* surface = impl_->surfaces.get(device->surface);
+        if (surface)
+            --surface->deviceCount;
+
+        std::erase(impl_->deviceIds, id);
+
+        return impl_->devices.erase(id);
+    }
+
+    std::optional<VulkanDeviceInfo> VulkanRuntime::deviceInfo(VulkanDeviceId id) const {
+        const Impl::Device* device = impl_->devices.get(id);
+        if (!device)
+            return std::nullopt;
+
+        return device->info;
     }
 }

@@ -1,6 +1,5 @@
 if (WIN32)
-    add_library(tinyui_core STATIC Win32/Win32Platform.cpp
-            ../Render/Vulkan/VulkanRuntime.cpp)
+    add_library(tinyui_core STATIC Win32/Win32Platform.cpp)
 else ()
     message(FATAL_ERROR "Native backend is not implemented for this platform yet.")
 endif ()

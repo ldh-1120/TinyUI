@@ -1,37 +1,97 @@
+#include <TinyUI/Core/Platform.h>
 #include <TinyUI/Render/VulkanRuntime.h>
 
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <utility>
-#include <vector>
 
 int main() {
-    tinyui::VulkanRuntimeOptions options{};
+    using namespace tinyui;
+
+    Result<std::unique_ptr<Platform> > createdPlatform = createPlatform();
+    if (!createdPlatform) {
+        std::cerr << createdPlatform.error().message << '\n';
+        return 1;
+    }
+
+    std::unique_ptr<Platform> platform = std::move(createdPlatform.value());
+
+    WindowOptions windowOptions{};
+    windowOptions.title = "TinyUI Vulkan";
+    windowOptions.width = 1280;
+    windowOptions.height = 720;
+
+    Result<WindowId> createdWindow = platform->createWindow(windowOptions);
+    if (!createdWindow) {
+        std::cerr << createdWindow.error().message << '\n';
+        return 1;
+    }
+
+    const WindowId windowId = createdWindow.value();
+    std::optional<NativeWindowHandle> native = platform->nativeWindowHandle(windowId);
+    if (!native)
+        return 1;
+
+    VulkanRuntimeOptions options{};
+    options.requiredInstanceExtensions = {"VK_KHR_surface", "VK_KHR_win32_surface"};
 
 #ifndef NDEBUG
     options.enableValidation = true;
 #endif
 
-    tinyui::Result<std::unique_ptr<tinyui::VulkanRuntime> > created = tinyui::VulkanRuntime::create(options);
-    if (!created) {
-        std::cerr << created.error().message << " (Code: " << created.error().nativeCode << ")" << std::endl;
+    Result<std::unique_ptr<VulkanRuntime> > createdRuntime = VulkanRuntime::create(options);
+    if (!createdRuntime) {
+        std::cerr << createdRuntime.error().message << '\n';
         return 1;
     }
 
-    std::unique_ptr<tinyui::VulkanRuntime> runtime = std::move(created.value());
-    std::cout << "TinyUI Vulkan Runtime initialized\n";
-    std::cout << "Validation: " << (runtime->validationEnabled() ? "Enabled" : "Disabled") << std::endl;
-
-    tinyui::Result<std::vector<tinyui::VulkanAdapterInfo> > adapters = runtime->enumerateAdapters();
-    if (!adapters) {
-        std::cerr << adapters.error().message << std::endl;
+    std::unique_ptr<VulkanRuntime> runtime = std::move(createdRuntime.value());
+    Result<VulkanSurfaceId> createdSurface = runtime->createSurface(*native);
+    if (!createdSurface) {
+        std::cerr << createdSurface.error().message << '\n';
         return 1;
     }
 
-    std::cout << "Physical devices: " << adapters->size() << '\n';
+    const VulkanSurfaceId surfaceId = createdSurface.value();
+    Result<VulkanDeviceId> createdDevice = runtime->createDevice(surfaceId);
+    if (!createdDevice) {
+        std::cerr << createdDevice.error().message << '\n';
+        return 1;
+    }
 
-    for (const tinyui::VulkanAdapterInfo& adapter: *adapters) {
-        std::cout << "\nDevice: " << adapter.name << "\nVulkan: " << adapter.apiMajor << "." << adapter.apiMinor << "." << adapter.apiPatch << "\nGraphics Queue: " << (adapter.supportsGraphics ? "Yes" : "No") << std::endl;
+    const VulkanDeviceId deviceId = createdDevice.value();
+    std::optional<VulkanDeviceInfo> device = runtime->deviceInfo(deviceId);
+    if (!device)
+        return 1;
+
+    std::cout << "Vulkan initialized!\n";
+    std::cout << "GPU: " << device->adapterName << '\n';
+    std::cout << "Graphics Queue: " << device->graphicsQueueFamily << '\n';
+    std::cout << "Present Queue: " << device->presentQueueFamily << '\n';
+
+    platform->showWindow(windowId);
+
+    bool running = true;
+
+    while (running && !platform->quitRequested()) {
+        platform->waitEvents();
+
+        std::optional<PlatformEvent> event = platform->nextEvent();
+        while (event) {
+            if (event->type == PlatformEventType::CloseRequested)
+                running = false;
+
+            event = platform->nextEvent();
+        }
+    }
+
+    const bool deviceDestroyed = runtime->destroyDevice(deviceId);
+    const bool surfaceDestroyed = runtime->destroySurface(surfaceId);
+    const bool windowDestroyed = platform->destroyWindow(windowId);
+    if (!deviceDestroyed || !surfaceDestroyed || !windowDestroyed) {
+        std::cerr << "Failed to release window resources.\n";
+        return 1;
     }
 
     return 0;

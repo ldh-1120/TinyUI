@@ -204,6 +204,14 @@ namespace tinyui {
                 return quitRequested_;
             }
 
+            std::optional<NativeWindowHandle> nativeWindowHandle(WindowId id) const override {
+                const NativeWindow* window = windows_.get(id);
+                if (!window || !window->handle)
+                    return std::nullopt;
+
+                return NativeWindowHandle{NativeWindowSystem::Win32, reinterpret_cast<std::uintptr_t>(window->handle), reinterpret_cast<std::uintptr_t>(instance_)};
+            }
+
         private:
             void emit(PlatformEvent event) noexcept {
                 try {

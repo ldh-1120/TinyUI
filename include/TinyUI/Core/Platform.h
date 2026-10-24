@@ -3,6 +3,7 @@
 #include <TinyUI/Core/PlatformEvent.h>
 #include <TinyUI/Core/Window.h>
 #include <TinyUI/Foundation/Result.h>
+#include <TinyUI/Core/NativeWindow.h>
 
 #include <cstddef>
 #include <memory>
@@ -27,6 +28,8 @@ namespace tinyui {
 
         [[nodiscard]] virtual std::size_t windowCount() const noexcept = 0;
         [[nodiscard]] virtual bool quitRequested() const noexcept = 0;
+
+        [[nodiscard]] virtual std::optional<NativeWindowHandle> nativeWindowHandle(WindowId id) const = 0;
     };
 
     [[nodiscard]] Result<std::unique_ptr<Platform>> createPlatform();

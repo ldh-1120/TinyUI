@@ -1,13 +1,29 @@
 #pragma once
 
 #include <TinyUI/Foundation/Result.h>
+#include <TinyUI/Core/NativeWindow.h>
+#include <TinyUI/Foundation/Handle.h>
 
+#include <optional>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace tinyui {
+    struct VulkanSurfaceTag {};
+    struct VulkanDeviceTag {};
+
+    using VulkanSurfaceId = Handle<VulkanSurfaceTag>;
+    using VulkanDeviceId = Handle<VulkanDeviceTag>;
+
+    struct VulkanDeviceInfo {
+        std::string adapterName;
+
+        std::uint32_t graphicsQueueFamily = 0;
+        std::uint32_t presentQueueFamily = 0;
+    };
+
     enum class VulkanAdapterType : uint8_t {
         Other,
         Integrated,
@@ -35,7 +51,7 @@ namespace tinyui {
 
     class VulkanRuntime {
     public:
-        [[nodiscard]] static Result<std::unique_ptr<VulkanRuntime>> create(const VulkanRuntimeOptions& options);
+        [[nodiscard]] static Result<std::unique_ptr<VulkanRuntime> > create(const VulkanRuntimeOptions& options);
 
         ~VulkanRuntime();
 
@@ -45,9 +61,17 @@ namespace tinyui {
         VulkanRuntime(VulkanRuntime&&) = delete;
         VulkanRuntime& operator=(VulkanRuntime&&) = delete;
 
-        [[nodiscard]] Result<std::vector<VulkanAdapterInfo>> enumerateAdapters() const;
+        [[nodiscard]] Result<std::vector<VulkanAdapterInfo> > enumerateAdapters() const;
 
         [[nodiscard]] bool validationEnabled() const noexcept;
+
+        [[nodiscard]] Result<VulkanSurfaceId> createSurface(NativeWindowHandle window);
+        [[nodiscard]] bool destroySurface(VulkanSurfaceId id);
+
+        [[nodiscard]] Result<VulkanDeviceId> createDevice(VulkanSurfaceId id);
+        [[nodiscard]] bool destroyDevice(VulkanDeviceId id);
+
+        [[nodiscard]] std::optional<VulkanDeviceInfo> deviceInfo(VulkanDeviceId id) const;
 
     private:
         struct Impl;
