@@ -1,6 +1,7 @@
 add_library(tinyui_compiler_options INTERFACE
         ../include/TinyUI/Render/VulkanRuntime.h
-        ../include/TinyUI/Core/NativeWindow.h)
+        ../include/TinyUI/Core/NativeWindow.h
+        ../include/TinyUI/Render/VulkanPresenter.h)
 
 if(MSVC)
     target_compile_options(tinyui_compiler_options INTERFACE

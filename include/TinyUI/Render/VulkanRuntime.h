@@ -13,9 +13,24 @@
 namespace tinyui {
     struct VulkanSurfaceTag {};
     struct VulkanDeviceTag {};
+    struct VulkanPresenterTag {};
 
     using VulkanSurfaceId = Handle<VulkanSurfaceTag>;
     using VulkanDeviceId = Handle<VulkanDeviceTag>;
+    using VulkanPresenterId = Handle<VulkanPresenterTag>;
+
+    struct VulkanClearColor {
+        float r = 0.08f;
+        float g = 0.09f;
+        float b = 0.11f;
+        float a = 1.0f;
+    };
+
+    enum class VulkanFrameStatus : std::uint8_t {
+        Presented,
+        ResizeRequired,
+        Suspended
+    };
 
     struct VulkanDeviceInfo {
         std::string adapterName;
@@ -72,6 +87,11 @@ namespace tinyui {
         [[nodiscard]] bool destroyDevice(VulkanDeviceId id);
 
         [[nodiscard]] std::optional<VulkanDeviceInfo> deviceInfo(VulkanDeviceId id) const;
+
+        [[nodiscard]] Result<VulkanPresenterId> createPresenter(VulkanDeviceId device, std::uint32_t pixelWidth, std::uint32_t pixelHeight);
+        [[nodiscard]] Result<VulkanFrameStatus> present(VulkanPresenterId present, VulkanClearColor clearColor);
+        [[nodiscard]] Result<void> resizePresenter(VulkanPresenterId presenter, std::uint32_t pixelWidth, std::uint32_t pixelHeight);
+        [[nodiscard]] bool destroyPresenter(VulkanPresenterId presenter);
 
     private:
         struct Impl;

@@ -7,7 +7,9 @@
 #include <Windows.h>
 #endif
 
+#include <TinyUI/Render/VulkanPresenter.h>
 #include <vulkan/vulkan.h>
+
 #include <TinyUI/Foundation/SlotMap.h>
 
 #include <array>
@@ -129,7 +131,20 @@ namespace tinyui {
 
             VulkanSurfaceId surface{};
             VulkanDeviceInfo info{};
+
+            VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+            std::uint32_t presenterCount = 0;
         };
+
+        struct PresenterEntry {
+            PresenterEntry(VulkanDeviceId deviceId, std::unique_ptr<detail::VulkanPresenter> value) : device(deviceId), presenter(std::move(value)) {};
+
+            VulkanDeviceId device{};
+            std::unique_ptr<detail::VulkanPresenter> presenter{};
+        };
+
+        SlotMap<PresenterEntry, VulkanPresenterTag> presenters;
+        std::vector<VulkanPresenterId> presenterIds;
 
         VkInstance instance = VK_NULL_HANDLE;
 
@@ -146,6 +161,9 @@ namespace tinyui {
         std::vector<VulkanDeviceId> deviceIds;
 
         ~Impl() {
+            for (VulkanPresenterId id: presenterIds)
+                presenters.erase(id);
+
             for (VulkanDeviceId id: deviceIds)
                 devices.erase(id);
 
@@ -490,6 +508,7 @@ namespace tinyui {
         const VulkanDeviceId id = impl_->devices.emplace(surfaceId);
         Impl::Device* device = impl_->devices.get(id);
 
+        device->physicalDevice = best.device;
         device->info.adapterName = best.properties.deviceName;
         device->info.graphicsQueueFamily = best.graphicsFamily;
         device->info.presentQueueFamily = best.presentFamily;
@@ -533,7 +552,7 @@ namespace tinyui {
 
     bool VulkanRuntime::destroyDevice(VulkanDeviceId id) {
         Impl::Device* device = impl_->devices.get(id);
-        if (!device)
+        if (!device || device->presenterCount != 0)
             return false;
 
         Impl::Surface* surface = impl_->surfaces.get(device->surface);
@@ -543,6 +562,73 @@ namespace tinyui {
         std::erase(impl_->deviceIds, id);
 
         return impl_->devices.erase(id);
+    }
+
+    Result<VulkanPresenterId> VulkanRuntime::createPresenter(VulkanDeviceId deviceId, std::uint32_t pixelWidth, std::uint32_t pixelHeight) {
+        Impl::Device* device = impl_->devices.get(deviceId);
+        if (!device)
+            return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid Vulkan device."});
+
+        Impl::Surface* surface = impl_->surfaces.get(device->surface);
+        if (!surface)
+            return std::unexpected(Error{ErrorCode::InvalidArgument, "Device surface is not available."});
+
+        detail::VulkanPresenterDesc desc{};
+        desc.physicalDevice = device->physicalDevice;
+        desc.device = device->handle;
+        desc.surface = surface->handle;
+        desc.graphicsQueue = device->graphicsQueue;
+        desc.presentQueue = device->presentQueue;
+        desc.graphicsFamily = device->info.graphicsQueueFamily;
+        desc.presentFamily = device->info.presentQueueFamily;
+        desc.width = pixelWidth;
+        desc.height = pixelHeight;
+
+        impl_->presenterIds.reserve(impl_->presenterIds.size() + 1);
+        Result<std::unique_ptr<detail::VulkanPresenter> > created = detail::VulkanPresenter::create(desc);
+        if (!created)
+            return std::unexpected(created.error());
+
+        const VulkanPresenterId id = impl_->presenters.emplace(deviceId, std::move(created.value()));
+
+        impl_->presenterIds.push_back(id);
+        ++device->presenterCount;
+
+        return id;
+    }
+
+    Result<VulkanFrameStatus> VulkanRuntime::present(VulkanPresenterId id, VulkanClearColor clearColor) {
+        Impl::PresenterEntry* entry = impl_->presenters.get(id);
+        if (!entry)
+            return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid Vulkan presenter."});
+
+        return entry->presenter->present(clearColor);
+    }
+
+    Result<void> VulkanRuntime::resizePresenter(VulkanPresenterId id, std::uint32_t pixelWidth, std::uint32_t pixelHeight) {
+        Impl::PresenterEntry* entry = impl_->presenters.get(id);
+        if (!entry)
+            return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid Vulkan presenter."});
+
+        return entry->presenter->resize(pixelWidth, pixelHeight);
+    }
+
+    bool VulkanRuntime::destroyPresenter(VulkanPresenterId id) {
+        Impl::PresenterEntry* entry = impl_->presenters.get(id);
+        if (!entry)
+            return false;
+
+        const VulkanDeviceId deviceId = entry->device;
+        if (!impl_->presenters.erase(id))
+            return false;
+
+        std::erase(impl_->presenterIds, id);
+
+        Impl::Device* device = impl_->devices.get(deviceId);
+        if (device)
+            --device->presenterCount;
+
+        return true;
     }
 
     std::optional<VulkanDeviceInfo> VulkanRuntime::deviceInfo(VulkanDeviceId id) const {

@@ -70,22 +70,102 @@ int main() {
     std::cout << "Graphics Queue: " << device->graphicsQueueFamily << '\n';
     std::cout << "Present Queue: " << device->presentQueueFamily << '\n';
 
+    std::optional<WindowMetrics> initialMetrics = platform->windowMetrics(windowId);
+    if (!initialMetrics) {
+        std::cerr << "Window metrics are unavailable.\n";
+        return 1;
+    }
+
+    Result<VulkanPresenterId> createdPresenter = runtime->createPresenter(deviceId, initialMetrics->pixelWidth, initialMetrics->pixelHeight);
+    if (!createdPresenter) {
+        std::cerr << createdPresenter.error().message << '\n';
+        return 1;
+    }
+
+    const VulkanPresenterId presenterId = createdPresenter.value();
     platform->showWindow(windowId);
 
     bool running = true;
 
     while (running && !platform->quitRequested()) {
-        platform->waitEvents();
+        platform->showWindow(windowId);
 
-        std::optional<PlatformEvent> event = platform->nextEvent();
-        while (event) {
-            if (event->type == PlatformEventType::CloseRequested)
-                running = false;
+        bool running = true;
+        bool redraw = true;
 
-            event = platform->nextEvent();
+        const VulkanClearColor background{0.08f, 0.09f, 0.11f, 1.0f};
+        while (running && !platform->quitRequested()) {
+            if (redraw)
+                platform->pollEvents();
+            else
+                platform->waitEvents();
+
+            bool resized = false;
+            std::optional<PlatformEvent> event = platform->nextEvent();
+
+            while (event) {
+                switch (event->type) {
+                    case PlatformEventType::CloseRequested:
+                        running = false;
+                        break;
+
+                    case PlatformEventType::Resized:
+                    case PlatformEventType::DpiChanged:
+                        resized = true;
+                        redraw = true;
+                        break;
+
+                    case PlatformEventType::RedrawRequested:
+                        redraw = true;
+                        break;
+                }
+
+                event = platform->nextEvent();
+            }
+
+            if (!running)
+                break;
+
+            if (resized) {
+                std::optional<WindowMetrics> metrics = platform->windowMetrics(windowId);
+                if (!metrics)
+                    return 1;
+
+                Result<void> result = runtime->resizePresenter(presenterId, metrics->pixelWidth, metrics->pixelHeight);
+                if (!result) {
+                    std::cerr << result.error().message << '\n';
+                    return 1;
+                }
+            }
+
+            if (!redraw)
+                continue;
+
+            Result<VulkanFrameStatus> frame = runtime->present(presenterId, background);
+            if (!frame) {
+                std::cerr << frame.error().message << '\n';
+                return 1;
+            }
+
+            redraw = false;
+
+            if (*frame == VulkanFrameStatus::ResizeRequired) {
+                std::optional<WindowMetrics> metrics = platform->windowMetrics(windowId);
+                if (!metrics)
+                    return 1;
+
+                Result<void> result = runtime->resizePresenter(presenterId, metrics->pixelWidth, metrics->pixelHeight);
+                if (!result) {
+                    std::cerr << result.error().message << '\n';
+                    return 1;
+                }
+
+                redraw = true;
+            }
         }
     }
 
+    const bool presenterDestroyed = runtime->destroyPresenter(presenterId);
     const bool deviceDestroyed = runtime->destroyDevice(deviceId);
     const bool surfaceDestroyed = runtime->destroySurface(surfaceId);
     const bool windowDestroyed = platform->destroyWindow(windowId);

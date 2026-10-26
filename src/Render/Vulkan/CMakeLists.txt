@@ -2,6 +2,7 @@ find_package(Vulkan REQUIRED)
 
 add_library(tinyui_vulkan STATIC
         VulkanRuntime.cpp
+        VulkanPresenter.cpp
 )
 
 add_library(TinyUI::Vulkan
