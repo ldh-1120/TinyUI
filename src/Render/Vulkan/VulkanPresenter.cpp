@@ -405,7 +405,7 @@ namespace tinyui::detail {
         presentInfo.pSwapchains = &swapchain->handle;
         presentInfo.pImageIndices = &imageIndex;
 
-        result = vkQueuePresentKHR(desc.graphicsQueue, &presentInfo);
+        result = vkQueuePresentKHR(desc.presentQueue, &presentInfo);
         frameIndex = (frameIndex + 1) % FramesInFlight;
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {

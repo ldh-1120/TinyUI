@@ -90,6 +90,7 @@ namespace tinyui {
 
         [[nodiscard]] Result<VulkanPresenterId> createPresenter(VulkanDeviceId device, std::uint32_t pixelWidth, std::uint32_t pixelHeight);
         [[nodiscard]] Result<VulkanFrameStatus> present(VulkanPresenterId present, VulkanClearColor clearColor);
+
         [[nodiscard]] Result<void> resizePresenter(VulkanPresenterId presenter, std::uint32_t pixelWidth, std::uint32_t pixelHeight);
         [[nodiscard]] bool destroyPresenter(VulkanPresenterId presenter);
 

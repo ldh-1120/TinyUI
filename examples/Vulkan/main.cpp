@@ -86,86 +86,79 @@ int main() {
     platform->showWindow(windowId);
 
     bool running = true;
+    bool redraw = true;
 
+    const VulkanClearColor background{0.08f, 0.09f, 0.11f, 1.0f};
     while (running && !platform->quitRequested()) {
-        platform->showWindow(windowId);
+        if (redraw)
+            platform->pollEvents();
+        else
+            platform->waitEvents();
 
-        bool running = true;
-        bool redraw = true;
+        bool resized = false;
 
-        const VulkanClearColor background{0.08f, 0.09f, 0.11f, 1.0f};
-        while (running && !platform->quitRequested()) {
-            if (redraw)
-                platform->pollEvents();
-            else
-                platform->waitEvents();
+        std::optional<PlatformEvent> event = platform->nextEvent();
+        while (event) {
+            switch (event->type) {
+                case PlatformEventType::CloseRequested:
+                    running = false;
+                    break;
 
-            bool resized = false;
-            std::optional<PlatformEvent> event = platform->nextEvent();
+                case PlatformEventType::Resized:
+                case PlatformEventType::DpiChanged:
+                    resized = true;
+                    redraw = true;
+                    break;
 
-            while (event) {
-                switch (event->type) {
-                    case PlatformEventType::CloseRequested:
-                        running = false;
-                        break;
-
-                    case PlatformEventType::Resized:
-                    case PlatformEventType::DpiChanged:
-                        resized = true;
-                        redraw = true;
-                        break;
-
-                    case PlatformEventType::RedrawRequested:
-                        redraw = true;
-                        break;
-                }
-
-                event = platform->nextEvent();
+                case PlatformEventType::RedrawRequested:
+                    redraw = true;
+                    break;
             }
 
-            if (!running)
-                break;
+            event = platform->nextEvent();
+        }
 
-            if (resized) {
-                std::optional<WindowMetrics> metrics = platform->windowMetrics(windowId);
-                if (!metrics)
-                    return 1;
+        if (!running)
+            break;
 
-                Result<void> result = runtime->resizePresenter(presenterId, metrics->pixelWidth, metrics->pixelHeight);
-                if (!result) {
-                    std::cerr << result.error().message << '\n';
-                    return 1;
-                }
+        if (resized) {
+            std::optional<WindowMetrics> metrics = platform->windowMetrics(windowId);
+            if (!metrics)
+                return 1;
+
+            Result<void> result = runtime->resizePresenter(presenterId, metrics->pixelWidth, metrics->pixelHeight);
+            if (!result) {
+                std::cerr << result.error().message << '\n';
+                return 1;
             }
+        }
 
-            if (!redraw)
-                continue;
+        if (!redraw)
+            continue;
 
-            Result<VulkanFrameStatus> frame = runtime->present(presenterId, background);
-            if (!frame) {
-                std::cerr << frame.error().message << '\n';
+        Result<VulkanFrameStatus> frame = runtime->present(presenterId, background);
+        if (!frame) {
+            std::cerr << frame.error().message << '\n';
+            return 1;
+        }
+
+        redraw = false;
+
+        if (*frame == VulkanFrameStatus::ResizeRequired) {
+            std::optional<WindowMetrics> metrics = platform->windowMetrics(windowId);
+            if (!metrics)
+                return 1;
+
+            Result<void> result = runtime->resizePresenter(presenterId, metrics->pixelWidth, metrics->pixelHeight);
+            if (!result) {
+                std::cerr << result.error().message << '\n';
                 return 1;
             }
 
-            redraw = false;
-
-            if (*frame == VulkanFrameStatus::ResizeRequired) {
-                std::optional<WindowMetrics> metrics = platform->windowMetrics(windowId);
-                if (!metrics)
-                    return 1;
-
-                Result<void> result = runtime->resizePresenter(presenterId, metrics->pixelWidth, metrics->pixelHeight);
-                if (!result) {
-                    std::cerr << result.error().message << '\n';
-                    return 1;
-                }
-
-                redraw = true;
-            }
+            redraw = true;
         }
     }
 
-    const bool presenterDestroyed = runtime->destroyPresenter(presenterId);
     const bool deviceDestroyed = runtime->destroyDevice(deviceId);
     const bool surfaceDestroyed = runtime->destroySurface(surfaceId);
     const bool windowDestroyed = platform->destroyWindow(windowId);
